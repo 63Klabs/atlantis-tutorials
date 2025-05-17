@@ -21,6 +21,7 @@ We will utilize an app starter and scripts in the SAM Config repository to:
 9. Configure a `prod` Pipeline in the SAM Config repository
 10. Deploy the `prod` Pipeline from the SAM Config repository
 11. Perform a complete application deployment cycle from `dev` to `prod`
+12. Deployment Strategies: `TEST` vs `PROD`
 
 ## 1. Create a Repository and Seed it Using a Script
 
@@ -40,7 +41,7 @@ Choose `00-app-starter` from the prompt.
 
 Go into the AWS Console and explore the repository in CodeCommit.
 
-Notice there are three branches as we are using the `dev-test-main` workflow. (See [Branching and Git Workflow Strategy for Tutorials](../../README.md#branching-and-git-workflow-strategy-for-tutorials))
+> The tutorials will use the `dev-test-main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](./tutorials/default-git-branch-workflow.md)
 
 If using CodeCommit, your repository was also given AWS resource tags to assist in account management. Note that resource tags are not the same as git tags. Resource tags are a feature of AWS as a type of meta data used to organize, manage, and report. Git tags are snapshots of repository contents and are a feature of all git repositories.
 
@@ -362,3 +363,102 @@ const getResponse = () => {
 	};
 }
 ```
+
+Commit and push your changes to `dev` and then merge into `test`:
+
+```bash
+git add --all
+git commit -m "added dice and cards"
+git push
+git checkout test
+git merge dev
+git push
+```
+
+Verify the changes once deployment is complete. 
+
+If everything is satisfactory, then you are ready to merge to production!
+
+```bash
+git checkout main
+git merge test
+git push
+```
+
+This time, as the code moves through the pipeline, you may notice that the CloudFormation stage takes longer than before.
+
+This is because production branches (`beta`, `stage`, `main`) typically use a _gradual_ deployment method.
+
+## 12. Deployment Strategies: `TEST` vs `PROD`
+
+If you examine the application's CloudFormation template, you will notice conditionals based on whether the template parameter `DeployEnvironment` is set to `PROD` or `TEST`.
+
+Any deployment environment that should mimic a **Production** environment is considered `PROD`. This includes the branches/stages `beta`, `stage`, and `main`. All other deployments should be considered `TEST`. (`DEV` is also available but only when deploying on a local machine).
+
+`TEST` environments deploy with fewer resources and increased logging for debugging purposes. `PROD` environments are production-like environments where the additional resources (such as alarms and dashboards which incur additional cost) have a place to be previewed and tested in `beta` or `stage` before moving to production. The `beta` stage may also be used in conjunction with a CloudFront distribution to perform blue/green testing.
+
+Another noticable difference is that `PROD` environments utilize gradual deployments. This means that after a deploy to a production-like environment, traffic is slowly shifted from the old version of the application to the new version. If errors occur in the new version during the shift, the production environment can revert back to the old version.
+
+It is important to note that during a gradual deployment the CloudFormation status will remain as _In Progress_ while the shift is occuring. Also, if you refresh the endpoint URL you will occasionally shift between the old and new version.
+
+### Features of `TEST` environments
+
+- Alarms are not created (they cost money and will be reserved for PROD deployments)
+- Dashboards are not created (they cost money and will be reserved for PROD deployments) (We don't use dashboards in this simple app starter but will see them in a future tutorial)
+- Deployment is `AllAtOnce` and not gradual. This allows developers to see the effects of new code right away
+- Lambda logging levels can be set higher to allow for greater debugging
+- Shorter CloudWatch log retention
+
+### Features of `PROD` environments
+
+- Alarms are created
+- Dashboards are created
+- Deployment is gradual
+- Lambda logging levels can be set lower, only logging important information such as final execution information, errors, and warnings.
+- Longer CloudWatch log retention
+
+### Don't Confuse `DeployEnvironment` with `NODE_ENV` or `StageId`
+
+If you are familiar with Node package dependencies, you know that there are dependencies reserved for development that are not included when an application is deployed to production. This typically includes developer tools and testing packages.
+
+Setting `NODE_ENV` to `development` on your local machine is fine, but by default the CodePipeline template sets the CodeBuild environment variable `NODE_ENV` to `production` as developer tools are not needed. Also, adding all the dev dependencies to your Lambda function takes up extra space and can prevent inspecting the Lambda code in the console.
+
+So remember, `NODE_ENV` is always set to `production` during deployments.
+
+Also, while the `test` branch and `test StageId` is named similar to `DeployEnvironment TEST`, the `DeployEnvironment PROD` can refer to any branch or `StageId` that should be _production-like_ for staging, beta testing, or production purposes. So a `PROD` environment can be assumed by `beta`, `stage`, `staging`, `main` or `prod` branches/stages.
+
+Finally, you can use `DeployEnvironment` to set Lambda environment variables for internal testing and logging. For example, if you look at the environment variables in the Lambda template:
+
+```yaml
+
+Conditions:
+  IsProduction: !Equals [!Ref DeployEnvironment, "PROD"]
+
+Resources:
+
+  AppFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+
+	# ....
+
+      Environment:
+        Variables:
+          detailedLogs: !If [ IsProduction, "0",  "5"] # 0 for prod, 2-5 for non-prod
+          deployEnvironment: !Ref DeployEnvironment
+          paramStore: !Ref ParameterStoreHierarchy
+          lambdaTimeoutInSeconds: !Ref FunctionTimeOutInSeconds # so we can calculate any external connection timeout in our code
+
+```
+
+The Lambda environment variable `detailedLogs` is set to `0` for `PROD` and `5` for anything that is not production-like (`TEST` and `DEV`)
+
+The Lambda environment variable `deployEnvironment` can be used to shorten cache expiration for testing purposes if your function caches data.
+
+### Use Sparingly
+
+Traditionally development and test environments have utilized smaller memory and CPU size. While you could lower the memory on your Lambda function there is little need to do so as a Lambda function at rest incurs zero cost. Use this to your benefit so that you can run your code in a Lambda function that has the same memory size and speed as production.
+
+Also, don't go overboard when turning on or off resources and features. The more complex your conditional resources become, the greater chance for error.
+
+You'll receive the greatest benefits by turning off alarms, dashboards, and log retention when not in production.

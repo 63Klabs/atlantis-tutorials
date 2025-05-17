@@ -2,8 +2,6 @@
 
 Tutorials and walk-throughs for deploying serverless applications using CloudFormation and Severless Application Model templates provided by 63Klabs.
 
-> Note: Though you can create and seed GitHub repositories using the scripts provided, the pipeline templates do not yet incorporate using anything other than CodeCommit as a source. Unfortunately, if you do not have CodeCommit available in your AWS account, you will not be able to complete the tutorials at this time. I'm working to get templates that utilize GitHub as a source.
-
 ## Before You Get Started
 
 If you have not already completed [Serverless 8 Ball Example](https://github.com/chadkluck/serverless-sam-8ball-example) by [chadkluck](https://github.com/chadkluck) it is recommended you do so before continuing.
@@ -123,41 +121,21 @@ The tutorials will walk you through using the scripts, but here is a quick refer
   - test (empty)
   - dev (your seeded code will be here)
 
-  Clone the repository to your machine and check-out the `dev` branch to see your code. (Note: The `main` and `test` branches will be empty until you merge and push your updated code!)
+> The tutorials will use the `dev-test-main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](./tutorials/default-git-branch-workflow.md)
 
-  > Note: AWS CodeCommit is no longer available to new customers. Existing customers of AWS CodeCommit can continue to use the service as normal. [Learn more](https://aws.amazon.com/blogs/devops/how-to-migrate-your-aws-codecommit-repository-to-another-git-provider/)
+Clone the repository to your machine and check-out the `dev` branch to see your code. (Note: The `main` and `test` branches will be empty until you merge and push your updated code!)
 
-  > While an `app-starter-location` is required for a GitHub repository, it is not required for the `create_repo.py` script. However, for either script you can always point it to a zip file in an S3 bucket or a GitHub repository to seed your new repository.
+> Note: AWS CodeCommit is no longer available to new customers. Existing customers of AWS CodeCommit can continue to use the service as normal. [Learn more](https://aws.amazon.com/blogs/devops/how-to-migrate-your-aws-codecommit-repository-to-another-git-provider/)
 
-## Branching and Git Workflow Strategy for Tutorials
-
-You'll notice your repositories are initially created with 3 branches:
-
-- `dev` (for constant commits of unfinished code)
-- `test` (for automated deployments to test)
-- `main` (default and for automated deployments to production)
-
-When we initially create the repository, the `main` and `test` branches only include a single placeholder file. This is because we haven't had any finished code to deploy.
-
-The repositories are set up using a simplified `dev-test-main` workflow where a developer can continually commit and push changes to the `dev` branch without invoking an automated deployment. Since continually running an AWS CodePipeline can incur cost, code is only merged and pushed to `test` when it is ready to deploy to a test instance.
-
-If changes need to be made, go back to the `dev` branch, make changes, commit and push to `dev`, then merge and push to `test`. This cycle continues until the code in `test` is deemed ready for production.
-
-Once ready for production, the `test` branch is merged and pushed into `main` which kicks off a deployment for production.
-
-To complete the cycle, a developer may wish to merge main into dev just to ensure no side branches (feature or hotfix) were merged that have not been received into `dev`.
-
-If a staging or beta branch is desired, it can be inserted in between `test` and `main`. (`dev-test-beta-main` or `dev-test-stage-main`).
-
-We will be using this branch workflow strategy for the tutorials as diving into feature, hot-fix, etc. is beyond the scope of these tutorials. Your Git workflow strategy depends on your organization, how many developers are working on a repository, and your needs. Outside of the tutorials, you can reconfigure, use different strategies, and point a pipeline to any branch, including `feat-328` or `fix-98`. At the end of the day all you need is a branch or two that can receive a commit to kick off a deployment pipeline.
+> While an `app-starter-location` is required for a GitHub repository, it is not required for the `create_repo.py` script. However, for either script you can always point it to a zip file in an S3 bucket or a GitHub repository to seed your new repository.
 
 ## Tutorials
 
 To ensure everything is set-up correctly, start with:
 
-- SAM Config Repo Documentation for Developers (if you haven't already)
+- SAM Config Repo Quick Start Documentation for Developers (if you haven't already)
 - [Serverless 8 Ball Example](https://github.com/chadkluck/serverless-sam-8ball-example) (if you haven't already)
-- Application Starter: 00 Basic API Gateway with Lambda Function Written in Node.js
+- [Application Starter: 00 Basic API Gateway with Lambda Function Written in Node.js](./tutorials/00-basic-api-gateway-with-lambda-written-in-node/README.md)
 
 Then, move on to:
 
