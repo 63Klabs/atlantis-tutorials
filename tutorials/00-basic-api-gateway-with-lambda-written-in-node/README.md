@@ -100,6 +100,16 @@ To learn more about each resource template and the properties available, just pe
 
 So, as you can see with the alarms and logs, there is some level of observability and monitoring. In future tutorials and application starters we will have access to additional monitoring options. It is recommended that you keep going with the tutorials to learn more and implement those features for production workloads.
 
+We want to deploy the code as-is, so merge `dev` into `test`:
+
+```bash
+git checkout test
+git merge dev
+git push
+```
+
+The code is now in test, but we don't yet have a pipeline set up.
+
 ## 4. Configure a `test` Pipeline in the SAM Config repository
 
 In a separate terminal, access the SAM Configuration Repository.
