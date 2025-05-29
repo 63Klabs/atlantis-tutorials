@@ -1,4 +1,4 @@
-# Tutorial #1 - Basic API Gateway with Lambda written in Node.js
+# Tutorial #0 - Basic API Gateway with Lambda written in Node.js
 
 > Uses [Atlantis App Starter - 00 - Basic API Gateway with Lambda written in Node.js](https://github.com/63Klabs/atlantis-starter-00-basic-apigw-lambda-nodejs)
 
@@ -6,15 +6,15 @@ Refer to the README in the app starter GitHub repository above for an overview o
 
 ## Objective
 
-By the end of this tutorial you will be able to create a repository and seed it with a starter app, configure and deploy a pipeline for both a test and production deployment, understand the manual deployment process for pipeline stacks, and automated deployments for application stacks.
+By the end of this tutorial you will be able to create a repository and seed it with a starter app, configure and deploy a pipeline for both a test and production deployment, understand the manual deployment process for pipeline stacks from the cli, and utilize automated deployments for application stacks.
 
 We will utilize an app starter and scripts in the SAM Config repository to:
 
-1. Create a repository seeded with our app starter using a script
+1. Create a repository seeded with our app starter using `create_repo.py`
 2. Examine the new repository and the branches
 3. Clone the New Repository
-4. Configure a `test` Pipeline in the SAM Config repository
-5. Deploy the `test` Pipeline from the SAM Config repository
+4. Configure a `test` Pipeline in the SAM Config repository using `config.py pipeline`
+5. Deploy the `test` Pipeline from the SAM Config repository using `deploy.py pipeline`
 6. Examine the Pipeline and CloudFormation process
 7. Test the endpoint
 8. Make changes and merge changes to `test` (to invoke the pipeline)
@@ -24,7 +24,7 @@ We will utilize an app starter and scripts in the SAM Config repository to:
 12. Perform a complete application deployment cycle from `dev` to `prod`
 13. Deployment Strategies: `TEST` vs `PROD`
 
-## 1. Create a Repository and Seed it Using a Script
+## 1. Create a Repository and Seed it Using `create_repo.py`
 
 > If you have not yet acquainted yourself with the SAM Config Repository Documentation for Developers please do so as it provides helpful information about the scripts contained within.
 
@@ -40,7 +40,7 @@ Choose `00-basic-apigw-lambda-nodejs.zip` from the prompt.
 
 ## 2. Repository Configuration
 
-Go into the AWS Console and explore the repository in CodeCommit.
+Go to GitHub or the AWS CodeCommit Console and explore the repository. The `main` and `test` branches will be empty, and your code will be in the `dev` branch.
 
 > The tutorials will use the `dev-test-main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](./tutorials/default-git-branch-workflow.md)
 
@@ -54,13 +54,11 @@ Typical tags you will see are "CostCenter," "Creator," "Department," and "Owner"
 
 ## 3. Clone New Repository
 
-It is assumed that the starter code works without modification, so let's merge the code from `dev` to `test`.
-
 Go back to your terminal for the SAM Config repository and copy the URL in the confirmation message for "Clone URL (HTTPS)".
 
 Open a new terminal window (we want to keep the SAM Config repository open) and go to where you store your directories.
 
-In the CLI, type `git clone ` and paste the URL you copied.
+In the CLI, type `git clone` and paste the URL you copied.
 
 ```bash
 git clone https://the-git-url-you-copied
@@ -110,7 +108,7 @@ git push
 
 The code is now in test, but we don't yet have a pipeline set up.
 
-## 4. Configure a `test` Pipeline in the SAM Config repository
+## 4. Configure a `test` Pipeline in the SAM Config repository using `config.py pipeline`
 
 In a separate terminal, access the SAM Configuration Repository.
 
@@ -158,13 +156,18 @@ git commit -m "added test pipeline to adv-8-ball"
 git push
 ```
 
-## 5. Deploy the `test` Pipeline from the SAM Config repository
+## 5. Deploy the `test` Pipeline from the SAM Config repository using `deploy.py pipeline`
 
 Copy, paste and execute the deploy command from the config output.
 
-Since the script is executing `aws sam deploy` in the background you will see the familiar `sam deploy` information and (if you set confirm to `true`) prompt to execute the changes.
+```bash
+# Perform this command in the SAM Config Repo
+./cli/deploy.py pipeline your-prefix adv-8-ball test --profile your-profile
+```
 
-If the `deploy.py` script performs `aws sam deploy` in the background, why not just do it directly? Well, we'll discuss the [limitations of `samconfig`](../atlantis-formatted-samconfig.md) later. For now, just know that we are pulling the template from S3 and `samconfig` doesn't allow for that natively.
+Since the script is executing `sam deploy` in the background you will see the familiar `sam deploy` information and (if you set confirm to `true`) prompt to execute the changes.
+
+If the `deploy.py` script performs `sam deploy` in the background, why not just do it directly? Well, we'll discuss the [limitations of `samconfig`](../atlantis-formatted-samconfig.md) later, but for now, just know that you can't point to a template in S3 when using `samconfig` files. The script downloads the template from S3 to a local temporary directory and  then performs the `sam deploy` using the local copy.
 
 ## 6. Examine the Pipeline and CloudFormation process
 

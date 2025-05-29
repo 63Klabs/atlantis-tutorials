@@ -139,6 +139,6 @@ To ensure everything is set-up correctly, start with:
 
 Then, move on to:
 
-1. TODO
+1. [Application Starter: 01 Basic API Gateway with Lambda Function Written in Python](./tutorials/01-basic-api-gateway-with-lambda-written-in-python/README.md)
 2. TODO
 3. TODO
