@@ -4,6 +4,12 @@
 
 Refer to the README in the app starter GitHub repository above for an overview of the code.
 
+## Prerequisite
+
+An understanding of concepts outlined in previous tutorials is required.
+
+If you have not read through the [introductory README](../../README.md), or have not completed the [previous tutorials](../../README.md#tutorials), please do so before proceeding. Each tutorial builds on concepts from the previous and is not something to just "jump into."
+
 ## Objective
 
 By the end of this tutorial you will be able to create a repository and seed it with a starter app, configure and deploy a pipeline for both a test and production deployment, understand the manual deployment process for pipeline stacks from the cli, and utilize automated deployments for application stacks.
