@@ -140,5 +140,12 @@ To ensure everything is set-up correctly, start with:
 Then, move on to:
 
 1. [Application Starter: 01 Basic API Gateway with Lambda Function Written in Python](./tutorials/01-basic-api-gateway-with-lambda-written-in-python/README.md)
-2. TODO
-3. TODO
+2. Coming Soon: Storage Stack using S3 and Dynamo DB for Cache-Data
+  - Application Starter: 02 API Gateway with Lambda using Cache-Data (Node.js)
+3. Coming Soon: Storage Stack using S3 and Origin Access Control for Static Website
+  - Application Starter: 03 Static Website Deployment with CodeBuild and S3
+  - Network Stack using CloudFront and Route53
+4. Coming Soon: Application Starter: 04 Event Triggered Lambda
+5. Coming Soon: Application Starter: 05 Event Triggered Step Function
+6. Coming Soon: Application Starter: 06 Video Transcoding using Elemental MediaConvert
+7. Coming Soon: Application Starter: 07 SQS and Lambda
