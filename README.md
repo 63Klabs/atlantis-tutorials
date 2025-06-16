@@ -89,7 +89,7 @@ If you are a student, learner, trainee, or employee using an account already set
 
 ## SAM Configuration Repository
 
-Clone your organization's SAM Configuration Repository to your local machine and read through the Documentation for Developers.
+Clone your organization's SAM Configuration Repository to your local machine and read through the **Documentation for Developers** as it includes important information on installing and using the required Python packages in a Python virtual environment.
 
 If your organization does not have a Configuration Repository set up, or if you are using a personal account and have not set one up, please go back to the section above titled [AWS Account Set-Up and IAM Roles](#aws-account-set-up-and-iam-roles).
 
