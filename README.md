@@ -107,27 +107,23 @@ Besides using them for the tutorials, application starter code can be used as a 
 
 The tutorials will walk you through using the scripts, but here is a quick reference:
 
-- CodeCommit
-  1. `./cli/create_repo.py your-repo-name`
-  2. You will be prompted to choose a starter app.
-  3. It will create the repository, branches, and provide you with a Clone URL.
-- GitHub
-  1. `./cli/create-gh-repo.sh your-repo-name app-starter-location` where `app-starter-location` is either an S3 location or GitHub repository URL for the Starter App.
-  2. It will create the repository, branches, and provide you with a Clone URL.
+1. Run the create repository script:
+   - CodeCommit: `./cli/create_repo.py your-repo-name`
+   - GitHub: `./cli/create_repo.py your-repo-name your-repo-name --provider github`
+2. You will be prompted to choose a starter app.
+3. It will create the repository, branches, and provide you with a Clone URL.
 
-  The repository will be created with 3 branches:
+The repository will be created with 3 branches:
 
-  - main (default but empty)
-  - test (empty)
-  - dev (your seeded code will be here)
+- main (default but empty)
+- test (empty)
+- dev (your seeded code will be here)
 
 > The tutorials will use the `dev-test-main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](./tutorials/default-git-branch-workflow.md)
 
 Clone the repository to your machine and check-out the `dev` branch to see your code. (Note: The `main` and `test` branches will be empty until you merge and push your updated code!)
 
 > Note: AWS CodeCommit is no longer available to new customers. Existing customers of AWS CodeCommit can continue to use the service as normal. [Learn more](https://aws.amazon.com/blogs/devops/how-to-migrate-your-aws-codecommit-repository-to-another-git-provider/)
-
-> While an `app-starter-location` is required for a GitHub repository, it is not required for the `create_repo.py` script. However, for either script you can always point it to a zip file in an S3 bucket or a GitHub repository to seed your new repository.
 
 ## Tutorials
 
@@ -141,10 +137,10 @@ Then, move on to:
 
 1. [Application Starter: 01 Basic API Gateway with Lambda Function Written in Python](./tutorials/01-basic-api-gateway-with-lambda-written-in-python/README.md)
 2. Coming Soon: Storage Stack using S3 and Dynamo DB for Cache-Data
-  - Application Starter: 02 API Gateway with Lambda using Cache-Data (Node.js)
+   - Application Starter: 02 API Gateway with Lambda using Cache-Data (Node.js)
 3. Coming Soon: Storage Stack using S3 and Origin Access Control for Static Website
-  - Application Starter: 03 Static Website Deployment with CodeBuild and S3
-  - Network Stack using CloudFront and Route53
+   - Application Starter: 03 Static Website Deployment with CodeBuild and S3
+   - Network Stack using CloudFront and Route53
 4. Coming Soon: Application Starter: 04 Event Triggered Lambda
 5. Coming Soon: Application Starter: 05 Event Triggered Step Function
 6. Coming Soon: Application Starter: 06 Video Transcoding using Elemental MediaConvert
