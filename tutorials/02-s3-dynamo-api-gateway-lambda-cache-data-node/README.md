@@ -37,7 +37,7 @@ TODO
 
 ## Part II: Application Starter: 02 API Gateway with Lambda using Cache-Data (Node.js)
 
-> Uses [Atlantis App Starter - 02 - API Gateway and Lambda using Cache-Data (Node)](https://github.com/63Klabs/atlantis-starter-02-apigw-lambda-cache-data-node)
+> Uses [Atlantis App Starter - 02 - API Gateway and Lambda using @63Klabs/Cache-Data (Node)](https://github.com/63Klabs/atlantis-starter-02-apigw-lambda-cache-data-nodejs)
 
 Refer to the README in the app starter GitHub repository above for an overview of the code.
 
