@@ -135,9 +135,8 @@ To ensure everything is set-up correctly, start with:
 
 Then, move on to:
 
-1. [Application Starter: 01 Basic API Gateway with Lambda Function Written in Python](./tutorials/01-basic-api-gateway-with-lambda-written-in-python/README.md)
-2. Coming Soon: Storage Stack using S3 and Dynamo DB for Cache-Data
-   - Application Starter: 02 API Gateway with Lambda using Cache-Data (Node.js)
+1. [Tutorial #1: Basic API Gateway with Lambda written in Python](./tutorials/01-basic-api-gateway-with-lambda-written-in-python/README.md)
+2. [Tutorial #2: S3 and DynamoDb storage stack for API Gateway and Lambda using Cache-Data (Node)](./tutorials/02-s3-dynamo-api-gateway-lambda-cache-data-node/README.md)
 3. Coming Soon: Storage Stack using S3 and Origin Access Control for Static Website
    - Application Starter: 03 Static Website Deployment with CodeBuild and S3
    - Network Stack using CloudFront and Route53

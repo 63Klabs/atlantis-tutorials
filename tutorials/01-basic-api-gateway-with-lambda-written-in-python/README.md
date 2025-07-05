@@ -1,4 +1,4 @@
-# Tutorial #1 - Basic API Gateway with Lambda written in Python
+# Tutorial #1: Basic API Gateway with Lambda written in Python
 
 > Uses [Atlantis App Starter - 01 - Basic API Gateway with Lambda written in Python](https://github.com/63Klabs/atlantis-starter-01-basic-apigw-lambda-py)
 
