@@ -19,17 +19,18 @@ By the end of this tutorial you will be able to deploy a production-ready applic
 3. Obtain the DynamoDb table and S3 bucket names
 4. Seed repository and create pipeline
 5. Utilize conditionals for resource creation and properties
-6. Secure secrets using SSM Parameter Store
-7. Inspect and utilize various features of the @63klabs/cache-data npm package
+6. `ImportValue` and Parameter Overrides
+7. Secure secrets using SSM Parameter Store
+8. Inspect and utilize various features of the @63klabs/cache-data npm package
    1. Configuration
    2. Caching
    3. Debugging
    4. Request handling
-8. Trace logs using X-Ray
-9. Monitor performance using Lambda Insights and CloudWatch Dashboards
-10. Create Alarms and Rollback Deployments
-11. Automate unit testing
-12. Automate post-deployment testing
+9. Trace logs using X-Ray
+10. Monitor performance using Lambda Insights and CloudWatch Dashboards
+11. Create Alarms and Rollback Deployments
+12. Automate unit testing
+13. Automate post-deployment testing
 
 > Note: This tutorial uses the Prefix `acme` and profile `acme-dev`. Be sure to replace with your own requirements. Also, if your organization requires you to add your username or name to the front of the repository name or ProjectID you may do so to keep the account tidy.
 
@@ -122,7 +123,11 @@ After the pipeline has been created successfully, a link to the pipeline will be
 
 TODO
 
-### 6. Secure secrets using SSM Parameter Store
+### 6. `ImportValue` and Parameter Overrides
+
+TODO
+
+### 7. Secure secrets using SSM Parameter Store
 
 TODO
 
