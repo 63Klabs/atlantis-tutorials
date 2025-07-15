@@ -55,7 +55,7 @@ In the SAM Config repository, create the storage configuration for cache-data.
 Note instead of `pipeline` we are creating a `storage` stack. Also note that since this is shared among all applications, and cache-data automatically partitions data between applications and their instances, we do not supply a stage identifier (`StageId`). (However, if you needed a sandbox or test instance, you could append it to the project identifier (`ProjectId`).)
 
 ```bash
-./cli/config.py storage acme cache-data --profile acme-dev
+./cli/config.py storage acme cache-data-shared --profile acme-dev
 ```
 
 When prompted to select a template you'll see that you will have a list that differs from before. Instead of pipelines, since you provided the `storage` type in the script arguments, it will display available storage templates.
@@ -66,7 +66,7 @@ Copy, paste and execute the deploy command from the config output.
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/deploy.py storage acme cache-data default --profile acme-dev
+./cli/deploy.py storage acme cache-data-shared default --profile acme-dev
 ```
 
 Be sure to commit and push your configuration to the SAM config repository.
