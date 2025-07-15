@@ -41,6 +41,13 @@ In the SAM Config repository, create the pipeline for your application.
 ./cli/config.py pipeline acme py8ball-adv test --profile acme-dev
 ```
 
+Copy, paste and execute the deploy command from the config output.
+
+```bash
+# Perform this command in the SAM Config Repo
+./cli/deploy.py pipeline acme py8ball-adv test --profile acme-dev
+```
+
 After the pipeline has been created successfully, a link to the pipeline will be displayed in the Output. Follow the link to view the pipeline in the console. (You may need to log into the console first before following the link.)
 
 ## 2. Inspect the Pipeline progress through the console
