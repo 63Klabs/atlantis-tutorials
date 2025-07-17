@@ -48,7 +48,7 @@ Choose `00-basic-apigw-lambda-nodejs.zip` from the prompt.
 
 Go to GitHub or the AWS CodeCommit Console and explore the repository. The `main` and `test` branches will be empty, and your code will be in the `dev` branch.
 
-> The tutorials will use the `dev-test-main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](./tutorials/default-git-branch-workflow.md)
+> The tutorials will use the `dev-test-main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](../default-git-branch-workflow.md)
 
 ### CodeCommit
 
