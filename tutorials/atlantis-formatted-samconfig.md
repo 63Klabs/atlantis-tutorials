@@ -1,6 +1,6 @@
 # Atlantis Formatted samconfig File
 
-The scripts in the SAM Config Repository utilize the `samconfig` file format, adhering to structure and properties used nativly by SAM to deploy applications.
+The scripts in the SAM Config Repository utilize the `samconfig` file format, adhering to structure and properties used natively by SAM to deploy applications.
 
 For the most part, you could take the `samconfig` file and perform a `sam deploy` against it except for one crucial difference:
 
