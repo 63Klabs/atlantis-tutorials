@@ -1,4 +1,4 @@
-# Tutorial #2: API Gateway and Lambda using Cache-Data (Node)
+# Tutorial #2: Advanced API Gateway and Lambda using Cache-Data (Node)
 
 This tutorial is in two parts and covers many best practices used for production applications. Therefore, it is much longer than other tutorials. However, all following tutorials will utilize these concepts without necessarily calling them out.
 
