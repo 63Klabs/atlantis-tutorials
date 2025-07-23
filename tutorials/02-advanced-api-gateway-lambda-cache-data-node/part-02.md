@@ -15,7 +15,9 @@ Using the `create_repo` script in your organization's SAM Config repository, cre
 
 Choose application starter 02 (`atlantis-starter-02-apigw-lambda-cache-data-nodejs`) when prompted.
 
-Clone the repository to your local environment and merge the `dev` branch into the `test` branch.
+Clone the application's repository to your local environment and merge the `dev` branch into the `test` branch without making any changes.
+
+> When staring new projects it is a good idea to start off with known, working code and get the initial "Hello" deployment working before making changes.
 
 In the SAM Config repository, create the pipeline for your application.
 
