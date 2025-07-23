@@ -46,7 +46,15 @@ For example, your SAM configuration passed Parameters to your stack to use as it
 parameter_overrides = "\"Prefix\"=\"acme\" \"ProjectId\"=\"starter-02\" \"StageId\"=\"test\" \"S3BucketNameOrgPrefix\"=\"\" \"RolePath\"=\"/sam-apps/\" \"PermissionsBoundaryArn\"=\"\" \"DeployEnvironment\"=\"TEST\" \"S3ArtifactsBucket\"=\"cf-templates-aaaaaa123-us-east-2\" \"S3StaticHostBucket\"=\"\" \"BuildSpec\"=\"application-infrastructure/buildspec.yml\" \"ParameterStoreHierarchy\"=\"/sam-apps/\" \"AlarmNotificationEmail\"=\"chad@63klabs.net\" \"Repository\"=\"acme-02-starter\" \"RepositoryBranch\"=\"test\""
 ```
 
-When the stack was deployed it used these parameters to make decisions, name resources, and even pass on to the CodeBuild environment and the Application stack.
+When the stack was deployed it used these parameters to make decisions, name resources, and even pass on.
+
+```mermaid
+flowchart LR
+S[SAM Config Parameters]-->D[Deploy Stack]
+D-->T[Pipeline Template Parameters]
+```
+
+The pipeline template defines Environment Variables for use during the build process and additional parameters to pass to the application stack during deployment. These values may be direct parameter values that were passed into the pipeline template or other values.
 
 ```yaml
 # Relevant code from template-pipeline.yml
@@ -101,6 +109,15 @@ Resources:
 				}'
 ```
 
+```mermaid
+flowchart LR
+
+T[Pipeline Template]-->C[CodeBuild Env Var]
+T-->S[Application Stack Parameters]
+S-->A[Application Template Parameters]
+C-->B[Build Spec Commands]
+```
+
 > You can override these values, and add additional parameter values for your Application stack by modifying the `template-configuration.yml` file in your application infrastructure directory.
 
 Your application stack also passes Environment variables to your Lambda function:
@@ -123,11 +140,18 @@ Resources:
         CACHE_DATA_USE_TOOLS_HASH_METHOD: true
 ```
 
+```mermaid
+flowchart LR
+
+A[Application Template Parameters]-->L[Lambda Environment Variables]
+L-->C[Code]
+```
+
 Which you can then use as such:
 
 ```js
 // Node
-const loglevel = process.env.LOG_LEVEL;
+const my_var = process.env.LOG_LEVEL;
 ```
 
 ```py
@@ -145,7 +169,10 @@ Here are the AWS CLI commands to list environment variables and parameters for v
 ```bash
 aws codebuild batch-get-projects --names CODEBUILD_PROJECT_NAME | jq '.projects[0].environment.environmentVariables' --profile ACME_DEV_PROFILE
 ```
+
 Replace `CODEBUILD_PROJECT_NAME` with the CodeBuild resource name. (You can get this from the Resources section of your Pipeline stack)
+
+You can also view these values through the AWS Web console by going to CodePipeline, clicking on the CodeBuild link in your pipeline flowchart, and selecting the Environment Variables tab.
 
 ### CloudFormation Stack Parameters
 
@@ -153,15 +180,19 @@ Replace `CODEBUILD_PROJECT_NAME` with the CodeBuild resource name. (You can get 
 aws cloudformation describe-stacks --stack-name STACK_NAME | jq '.Stacks[0].Parameters' --profile ACME_DEV_PROFILE
 ```
 
+You can also view these values through the AWS Web console by going to CloudFormation, selecting a stack, and opening the Parameters tab.
+
 ### Lambda Function Environment Variables
 
 ```bash
 aws lambda get-function-configuration --function-name FUNCTION_NAME | jq '.Environment.Variables' --profile ACME_DEV_PROFILE
 ```
 
+You can also view these values through the AWS Web console by going to Lambda, selecting the Lambda function, and opening the Configuration tab, and clicking on Environment Variables from the left-hand side.
+
 ## 3. Check endpoint and cache
 
-Hit refresh in the browser a few times. You should notice that while the first request took a second or two, the following requests are much shorter. This is because upon your first request the cache had to load from the original source. Subsequent requests only need to get the data from DynamoDb.
+Going back to your application endpoint, hit refresh in the browser a few times. You should notice that while the first request took a second or two, the following requests are much shorter. This is because upon your first request the cache had to load from the original source. Subsequent requests only need to get the data from DynamoDb.
 
 In the web console go to the Lambda Execution logs in CloudWatch. (There is a link in your application stacks outputs section.)
 
@@ -183,22 +214,70 @@ When you explore table items you'll see the cache records. If you click into the
 
 Let's step back a moment and explore the application resources by examining the template.
 
-## Metadata
+For your convenience, the template provides a link to AWS Documentation regarding each major section for you to learn more.
+
+Additional resource: [AWS CloudFormation: template sections](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html)
+
+### Metadata
 
 TODO
 
-## Parameters and overrides
+[AWS CloudFormation Templates: Metadata Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudformation-interface.html)
+
+### Parameters and Overrides
 
 TODO
 
-## Utilize conditionals for resource creation and properties
+[AWS CloudFormation Templates: Parameters Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html)
+
+### Mappings
 
 TODO
 
-## Mapping
+- [AWS CloudFormation Templates: Mappings Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/mappings-section-structure.html)
+- [AWS CloudFormation Templates: `Fn::FindInMap`](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/intrinsic-function-reference-findinmap.html)
+
+### Conditions
 
 TODO
 
-## Using `ImportValue` instead of parameters
+- [AWS CloudFormation Templates: Conditions Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html)
+- [AWS CloudFormation Condition Functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-conditions.html)
+
+### Globals
+
+TODO
+
+[AWS CloudFormation Templates: Globals Section](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html)
+
+### Resources
+
+TODO
+
+TODO: Serverless vs Lambda and API Gateway
+
+[AWS CloudFormation Templates: Resources Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html)
+
+### Using `ImportValue` instead of parameters
+
+TODO
+
+[AWS CloudFormation Templates: `Fn::ImportValue](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/intrinsic-function-reference-importvalue.html)
+
+### Outputs
+
+TODO
+
+[AWS CloudFormation Templates: Outputs Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html)
+
+## 5. Identify the components of build process
+
+TODO
+
+### Secure secrets using SSM Parameter Store
+
+TODO
+
+### Installs and scripts
 
 TODO
