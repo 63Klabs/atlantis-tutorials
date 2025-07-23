@@ -23,12 +23,12 @@ By the end of this tutorial you will be able to identify the various stages of t
 
 ## 1. Seed repository and create pipeline
 
-> Note: This tutorial uses the Prefix `acme` and profile `acme-dev`. Be sure to replace with your own organization's requirements. Also, if your organization requires you to add your username or name to the front of the repository name or ProjectID you may do so to keep the account tidy.
+> Note: This tutorial uses the Prefix `acme` and profile `ACME_DEV_PROFILE`. Be sure to replace with your own organization's requirements. Also, if your organization requires you to add your username or name to the front of the repository name or ProjectID you may do so to keep the account tidy.
 
 Using the `create_repo` script in your organization's SAM Config repository, create and seed the repository with application starter number 2.
 
 ```bash
-./cli/create_repo.py tutorial-py8ball-advanced --profile acme-dev
+./cli/create_repo.py tutorial-py8ball-advanced --profile ACME_DEV_PROFILE
 ```
 
 Choose application starter 01 basic-apigw-lambda-py when prompted.
@@ -38,14 +38,14 @@ Clone the repository to your local environment and merge the `dev` branch into t
 In the SAM Config repository, create the pipeline for your application.
 
 ```bash
-./cli/config.py pipeline acme py8ball-adv test --profile acme-dev
+./cli/config.py pipeline acme py8ball-adv test --profile ACME_DEV_PROFILE
 ```
 
 Copy, paste and execute the deploy command from the config output.
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/deploy.py pipeline acme py8ball-adv test --profile acme-dev
+./cli/deploy.py pipeline acme py8ball-adv test --profile ACME_DEV_PROFILE
 ```
 
 After the pipeline has been created successfully, a link to the pipeline will be displayed in the Output. Follow the link to view the pipeline in the console. (You may need to log into the console first before following the link.)

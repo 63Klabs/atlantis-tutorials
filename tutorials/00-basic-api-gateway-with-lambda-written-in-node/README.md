@@ -151,7 +151,7 @@ After completing the prompts, the script will display the command to deploy. We'
 Deploy commands are saved in the samconfig file for later reference. 
 Since the template is in S3, 'sam deploy' will NOT work. 
 Use ./cli/deploy.py instead 
-./cli/deploy.py pipeline acme adv-8-ball test --profile acme-dev 
+./cli/deploy.py pipeline acme adv-8-ball test --profile ACME_DEV_PROFILE 
 ```
 
 Before continuing it is a good idea to commit your configuration changes to the SAM Configuration Repository. Typically all changes can be pushed to the `main` branch as there should only be one source of truth. Check with your organization's policies to confirm.
