@@ -120,3 +120,5 @@ aws cloudformation describe-stacks --stack-name STACK_NAME --query "Stacks[0].Ou
 - Cache-Data storage uses encryption and hashing to keep data between applications and instances separate
 - Keeping storage stacks separate from applications helps with the practice of stack separation and to prevent accidental data deletion
 - Stacks can export variables to be used in other stacks within an account's region
+
+[Move on to Part II](./part-02.md)
