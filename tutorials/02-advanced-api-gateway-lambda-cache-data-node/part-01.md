@@ -21,6 +21,7 @@ If `<prefix>-cache-data-storage` does not exist as a CloudFormation stack, in th
 ```bash
 ./cli/config.py storage acme cache-data --profile ACME_DEV_PROFILE
 ```
+
 > Note: Instead of a `pipeline` we are creating a `storage` stack as noted with the first argument. Also note that since this is shared among all applications for a prefix in a region, and cache-data automatically partitions data between applications and their instances when storing, we do not supply a stage identifier (`StageId`) or specific application (`ProjectId`).
 
 When prompted to select a template you'll see a list of templates that differs from before. Instead of pipelines, since you provided the `storage` type in the script arguments, it will display available storage templates.
@@ -83,18 +84,39 @@ By default, your Lambda function has a execution role that only allows read acce
 
 The method in which the data is encrypted, and the hash identifier is generated, also ensures that each application can access only it's own data. For example, if you have two separate applications, each sending the same request to your directory data source, there will be two separate cache records, one for each application. Also, each instance (test, beta, prod) of your application has it's own keys and hash id calculation which further separates the caches.
 
-This means that if you have two application, each with a test, beta, and production instance, you could have the same data stored 6 times. However, this is expected and best practice as you don't want to share access among systems and deployments.
+This means that if you have two applications, each with a test, beta, and production instance, you could have the same data stored 6 times. However, this is expected and best practice as you don't want to share access among systems and deployments.
 
 Also, the DynamoDb table and S3 bucket will automatically expire and delete cached data to free up space.
 
 # 5. Stack Outputs and Exports
 
-TODO
+The Cache-Data storage stack makes the S3 and DynamoDb resource names and ARNs available to other stacks using an Outputs Export.
+
+This is a method in CloudFormation to create variables that can be used in any stack within an AWS account's region. This variable can then be used by other stacks to include non-static information without the necessity of providing shared resource table and bucket names as parameters to all stacks.
+
+Another benefit of using output variables is that while a variable is in use within other stacks, the stack exporting the variable cannot be deleted. 
+
+For example, if you deployed applications using the cache-data storage, the Cache-Data storage stack could not be deleted until those other stacks were modified to not use it. This is helpful in making sure vital resources that other applications depend on are not deleted accidentally. Also, if the value of the variable ever changes, then the stacks using the variable will need to be redeployed, which can be much easier than manually going around and updating the parameters of each stack.
+
+While this is useful to know, and it will come in handy later, other than knowing that is where your application stack will know where to store its cached data, you don't need to know much more about stack export variables for now.
+
+To view all exports within your account's region:
 
 ```bash
 aws cloudformation list-exports --profile ACME_DEV_PROFILE
 ```
 
+To view all exports for a specific stack:
+
 ```bash
 aws cloudformation describe-stacks --stack-name STACK_NAME --query "Stacks[0].Outputs[?ExportName]" --profile ACME_DEV_PROFILE
 ```
+
+# Part I Summary
+
+- Stacks are organized by lifecycle and owner.
+- In addition to a Pipeline and Application stack, you may manage a Storage stack.
+- Storage stacks may be shared among all instances in an application, or among many applications
+- Cache-Data storage uses encryption and hashing to keep data between applications and instances separate
+- Keeping storage stacks separate from applications helps with the practice of stack separation and to prevent accidental data deletion
+- Stacks can export variables to be used in other stacks within an account's region
