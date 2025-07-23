@@ -281,3 +281,7 @@ TODO
 ### Installs and scripts
 
 TODO
+
+## Part II Summary
+
+[Move on to Part III](./part-03.md)
