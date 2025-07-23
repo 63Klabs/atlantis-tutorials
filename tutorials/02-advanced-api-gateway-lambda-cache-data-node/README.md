@@ -69,7 +69,7 @@ By the end of this tutorial you will be able to deploy a production-ready applic
 
 > Note: This tutorial uses the Prefix `acme` and profile `ACME_DEV_PROFILE`. Be sure to replace with your own requirements. Also, if your organization requires you to add your username or name to the front of the repository name or ProjectID you may do so to keep the account tidy.
 
-1. Part I
-2. Part II
-3. Part III
-4. Part IV
+1. [Part I](./part-01.md)
+2. [Part II](./part-02.md)
+3. [Part III](./part-03.md)
+4. [Part IV](./part-04.md)
