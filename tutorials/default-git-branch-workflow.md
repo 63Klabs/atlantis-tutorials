@@ -81,7 +81,9 @@ git merge dev
 git push
 ```
 
-If changes need to be made, go back to the `dev` branch and make your changes. When ready, merge changes into `test`.
+When `test` is connected to a pipeline, the pipeline will go through the deploy process and you can test the deployment.
+
+If changes need to be made, go back and check-out the `dev` branch and make your changes. When ready, merge changes into `test`.
 
 ```bash
 git checkout dev
@@ -119,4 +121,21 @@ git checkout dev
 git pull # make sure dev is up to date
 git merge main # bring any changes from main down into dev
 git push
+```
+
+## Accommodating More Complex Workflows
+
+While this is beyond the scope of most of these tutorials, if multiple features are being worked on at the same time, there can be side branches. Much like trains moving from a side branch to the mainline, communication among team members to make sure the mainline is clear is key.
+
+```mermaid
+flowchart LR
+	dev-->test
+	test-->beta
+	beta-->main
+	dev-->dev-hotfix-143
+	dev-->dev-feat-74
+	dev-hotfix-143-->test-hotfix-143
+	test-hotfix-143-->dev
+	dev-feat-74-->test-feat-74
+	test-feat-74-->dev
 ```
