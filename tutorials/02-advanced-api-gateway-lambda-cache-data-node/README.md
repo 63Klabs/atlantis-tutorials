@@ -33,6 +33,8 @@ By the end of this tutorial you will be able to deploy a production-ready applic
    3. Utilize conditionals for resource creation and properties
    4. Mapping
    5. Using `ImportValue` instead of parameters
+   6. Using `Fn::Transform` and `AWS::Include`
+   7. Outputs
 5. Identify the components of build process
    1. Secure secrets using SSM Parameter Store
    2. Installs and scripts

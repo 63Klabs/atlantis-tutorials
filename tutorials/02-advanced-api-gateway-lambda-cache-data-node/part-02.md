@@ -210,7 +210,7 @@ When you access the table you can examine the table info and click on Explore ta
 
 When you explore table items you'll see the cache records. If you click into the records you can examine the meta data, and that the data itself is encrypted.
 
-## 3. Understand components of application template
+## 3. Understanding the components of the application template
 
 Let's step back a moment and explore the application resources by examining the template.
 
@@ -220,26 +220,123 @@ Additional resource: [AWS CloudFormation: template sections](https://docs.aws.am
 
 ### Metadata
 
-TODO
+The Metadata section is used by the AWS Web Console and Atlantis config.py to display the parameters in a particular order. It is used to group like parameters together when being prompted for values for the CloudFormation stack.
 
-[AWS CloudFormation Templates: Metadata Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudformation-interface.html)
+```yaml
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label:
+          default: "Application Resource Naming"
+        Parameters:
+          - Prefix
+          - ProjectId
+          # ....
+      -
+        Label:
+          default: "Deployment Environment Information"
+        Parameters:
+          - DeployEnvironment
+          - DeployRole
+          - FunctionGradualDeploymentType
+          - AlarmNotificationEmail
+          # ....
+```
+
+If you add additional parameters, or remove others, be sure to update the Metadata section.
+
+Learn more: [AWS CloudFormation Templates: Metadata Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudformation-interface.html)
 
 ### Parameters and Overrides
 
-TODO
+When you created the pipeline stack in the CLI, you were prompted for parameter values. 
 
-[AWS CloudFormation Templates: Parameters Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html)
+However, when your application stack was deployed by the pipeline, you were not prompted for any values since it was done through automation without intervention. So, where did these values come from?
+
+As explained earlier, some were passed on by the pipeline through the deployment phase as there are several parameters that are shared by both the pipeline and application, such as `Prefix`, `ProjectId`, `PermissionBoundaryArn`, and more.
+
+The next method of setting the parameter values, is by placing them in the `template-configuration.json` file which we will examine later when we talk about the build process.
+
+Finally, for those that were not explicitly set by the pipeline, or template config file, the default values set by the parameter definition are used.
+
+Learn more: [AWS CloudFormation Templates: Parameters Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html)
 
 ### Mappings
 
-TODO
+Mappings allow you to conditionally apply a value based upon another value.
+
+For example, in the template we are using, the Lambda Insights and Parameter and Secrets Extension layer arns will change depending upon which region we are deploying in. Instead of hardcoding, we can make it easier to deploy among multiple regions by mapping a particular Lambda layer arn to the region we are deploying in.
+
+We don't need to request this via a parameter or hard code it.
+
+```yaml
+Mappings:
+
+  LambdaParamSecretsX86:
+    us-east-1:
+      ExtArn: "arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension:18"
+    us-east-2:
+      ExtArn: "arn:aws:lambda:us-east-2:590474943231:layer:AWS-Parameters-and-Secrets-Lambda-Extension:22"
+    us-west-1:
+      ExtArn: "arn:aws:lambda:us-west-1:997803712105:layer:AWS-Parameters-and-Secrets-Lambda-Extension:18"
+    us-west-2:
+      ExtArn: "arn:aws:lambda:us-west-2:345057560386:layer:AWS-Parameters-and-Secrets-Lambda-Extension:18"
+
+Resources:
+  AppFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Layers:
+        - !FindInMap [LambdaParamSecretsX86, !Ref 'AWS::Region', ExtArn]
+```
+
+Learn more:
 
 - [AWS CloudFormation Templates: Mappings Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/mappings-section-structure.html)
 - [AWS CloudFormation Templates: `Fn::FindInMap`](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/intrinsic-function-reference-findinmap.html)
 
 ### Conditions
 
-TODO
+Portions of templates should be re-usable and adapt to various settings especially when being deployed in different environments such as `TEST` and `PROD`.
+
+CloudFormation does not allow for using logical operators such as `Equals` in `Fn::If`, it only allow for boolean values to be used. Therefore all evaluations must be done in the Conditions section.
+
+The conditions section is where you can evaluate mappings and parameters and produce boolean variables to be used in your template.
+
+In the template you are using, you'll notice many are commented out. This is because some linters will complain about unused variables. They are included so that you can easily comment them out when you have use for them.
+
+In the example below you'll notice the use of `IsProduction` and `CreateAlarms` to determine how the Lambda function should be deployed.
+
+```yaml
+Conditions:
+  IsProduction: !Equals [!Ref DeployEnvironment, "PROD"]
+  # IsNotProduction: !Not [!Equals [!Ref DeployEnvironment, "PROD"]]
+  # IsTest: !Equals [!Ref DeployEnvironment, "TEST"]
+  CreateProdResources: !Equals [!Ref DeployEnvironment, "PROD"]
+  CreateAlarms: !Equals [!Ref DeployEnvironment, "PROD"]
+  HasPermissionsBoundaryArn: !Not [!Equals [!Ref PermissionsBoundaryArn, ""]]
+
+  AppFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      DeploymentPreference:
+        Enabled: !If [ IsProduction, True,  False] #Gradual deployment only if in production so DEV and TEST aren't hindered
+        Type: !If [ IsProduction, !Ref FunctionGradualDeploymentType, "AllAtOnce"]
+        Alarms: # Alarms cost money. Only deploy in PROD environments
+          Fn::If:
+            - CreateAlarms
+            - - !Ref AppFunctionErrorsAlarm
+            - - !Ref 'AWS::NoValue'
+```
+
+Note the use of `AWS::NoValue`. Some CloudFormation properties require a value such as a string, boolean, or array. If you are using a conditional to set a property and you do not have use for the property if the condition does not warrant it, you can pass `AWS::NoValue`. This effectively set the value to `null` and CloudFormation will then remove the property from the template when deploying.
+
+In the above example, `Alarms` requires an array and will not accept an empty array or `""`. If we do not need to create an alarm, the If statement will produce the following `Alarms: null` which will then be pruned from deployment.
+
+> `Fn:If` statements are If/Else, you need a value for both the If and Else. If you only need an `If` but not an `Else` (or vice versa), use `!Ref 'AWS::NoValue'` as the "do nothing" or "null" value.
+
+Learn more:
 
 - [AWS CloudFormation Templates: Conditions Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html)
 - [AWS CloudFormation Condition Functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-conditions.html)
@@ -263,6 +360,36 @@ TODO: Serverless vs Lambda and API Gateway
 TODO
 
 [AWS CloudFormation Templates: `Fn::ImportValue](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/intrinsic-function-reference-importvalue.html)
+
+
+### Using `Fn::Transform` and `AWS::Include`
+
+The `Fn::Transform` intrinsic function in AWS CloudFormation specifies a macro to perform custom processing on a part of a stack template. Macros allow for advanced template transformations beyond standard CloudFormation functionality.
+
+The `AWS::Include` transform macro allows you to separate out, or re-use, portions of your templates.
+
+If you re-use an S3 bucket or DynamoDb definition among several templates you can store that template in S3.
+
+The application infrastructure template separates out the definitions for `Dashboard` and `Swagger` to make the overall template more manageable. Instead of S3, these are included in the same application infrastructure directory so that they can be customized to suit your application's needs. If you examine the `dashboard` and `swagger` template files you'll see they are quite lengthy, written in json and would clutter up the main template.
+
+```yaml
+Resources:
+  WebApi:
+    Type: AWS::Serverless::Api
+    Properties: 
+      DefinitionBody:
+        "Fn::Transform":
+          Name: "AWS::Include"
+          Parameters:
+            Location: ./template-swagger.yml
+
+  Fn::Transform:
+    Name: AWS::Include
+    Parameters:
+      Location: ./template-dashboard.yml
+```
+
+Learn More: [AWS CloudFormation Templates: Transform Include](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/transform-aws-include.html)
 
 ### Outputs
 
