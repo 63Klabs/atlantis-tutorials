@@ -10,13 +10,48 @@ When we initially create the repository, the `main` and `test` branches only inc
 
 The repositories are set up using a simplified `dev-test-main` workflow where a developer can continually commit and push changes to the `dev` branch without invoking an automated deployment. Since continually running an AWS CodePipeline can incur cost, code is only merged and pushed to `test` when it is ready to deploy to a test instance.
 
-If changes need to be made, go back to the `dev` branch, make changes, commit and push to `dev`, then merge and push to `test`. This cycle continues until the code in `test` is deemed ready for production.
+```mermaid
+---
+title: All merges are left to right
+---
+flowchard LR
+	D[dev
+	branch]
+	T[test
+	branch]
+	P[main
+	branch
+	(prod)]
+	D--merge-->T
+	T--merge-->P
+```
+
+If changes need to be made, go back and check-out the `dev` branch, make changes, commit and push to `dev`, then merge and push to `test`. This cycle continues until the code in `test` is deemed ready for production.
 
 Once ready for production, the `test` branch is merged and pushed into `main` which kicks off a deployment for production.
 
 To complete the cycle, a developer may wish to merge main into dev just to ensure no side branches (feature or hotfix) were merged that have not been received into `dev`.
 
 If a staging or beta branch is desired, it can be inserted in between `test` and `main`. (`dev-test-beta-main` or `dev-test-stage-main`).
+
+```mermaid
+---
+title: All merges are left to right
+---
+flowchard LR
+	D[dev
+	branch]
+	T[test
+	branch]
+	B[beta
+	branch]
+	P[main
+	branch
+	(prod)]
+	D--merge-->T
+	T--merge-->B
+	B--merge-->P
+```
 
 We will be using this branch workflow strategy for the tutorials as diving into feature, hot-fix, etc. is beyond the scope of these tutorials. Your Git workflow strategy depends on your organization, how many developers are working on a repository, and your needs. Outside of the tutorials, you can reconfigure, use different strategies, and point a pipeline to any branch, including `feat-328` or `fix-98`. At the end of the day all you need is a branch or two that can receive a commit to kick off a deployment pipeline.
 
