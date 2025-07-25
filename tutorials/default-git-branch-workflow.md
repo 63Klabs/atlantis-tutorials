@@ -14,7 +14,7 @@ The repositories are set up using a simplified `dev-test-main` workflow where a 
 ---
 title: All merges are left to right
 ---
-flowchard LR
+flowchart LR
 	D[dev
 	branch]
 	T[test
@@ -38,7 +38,7 @@ If a staging or beta branch is desired, it can be inserted in between `test` and
 ---
 title: All merges are left to right
 ---
-flowchard LR
+flowchart LR
 	D[dev
 	branch]
 	T[test
