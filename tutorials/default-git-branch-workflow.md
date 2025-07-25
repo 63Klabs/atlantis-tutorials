@@ -21,7 +21,7 @@ flowchart LR
 	branch]
 	P[main
 	branch
-	(prod)]
+	prod]
 	D--merge-->T
 	T--merge-->P
 ```
@@ -47,7 +47,7 @@ flowchart LR
 	branch]
 	P[main
 	branch
-	(prod)]
+	prod]
 	D--merge-->T
 	T--merge-->B
 	B--merge-->P
