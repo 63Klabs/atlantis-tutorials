@@ -127,9 +127,15 @@ git push
 
 While this is beyond the scope of most of these tutorials, if multiple features are being worked on at the same time, there can be side branches. Much like trains moving from a side branch to the mainline, communication among team members to make sure the mainline is clear is key.
 
+All work starts from dev, and dev can be regularly merged into side branches to keep them up to date. However, side branches can only merge into dev when work on those side branches are complete and given the all-clear to merge back into dev.
+
+Temporary pipelines can be set up on any branch used for testing and assist in making sure working code is merged back into dev.
+
+In this instance, dev does not hold daily work, but instead working code.
+
 ```mermaid
 ---
-title: All work starts from dev, and dev can be regularly merged into side branches, but side branches only merge into dev when work on side branches is complete.
+title: Side branches consisting of work for hot-fixes and features merge back into dev before heading on main line.
 ---
 flowchart LR
 	dev-->test
@@ -142,3 +148,5 @@ flowchart LR
 	dev-feat-74-->test-feat-74
 	test-feat-74-->dev
 ```
+
+Another option instead of creating and destroying feature branches is to give each developer their own dev and test branch (dev-joe and test-joe) with the same principle that only working code is merged into dev.
