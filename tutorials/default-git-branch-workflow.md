@@ -128,6 +128,9 @@ git push
 While this is beyond the scope of most of these tutorials, if multiple features are being worked on at the same time, there can be side branches. Much like trains moving from a side branch to the mainline, communication among team members to make sure the mainline is clear is key.
 
 ```mermaid
+---
+title: All work starts from dev, and dev can be regularly merged into side branches, but side branches only merge into dev when work on side branches is complete.
+---
 flowchart LR
 	dev-->test
 	test-->beta
