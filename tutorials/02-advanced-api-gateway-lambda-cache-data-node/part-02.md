@@ -218,6 +218,8 @@ For your convenience, the template provides a link to AWS Documentation regardin
 
 Additional resource: [AWS CloudFormation: template sections](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html)
 
+> Below you will find an explanation of sections and resource properties in the template file. Either follow along with the template in your application repository, or view the original [`template.yml` file in the Application Starter 02 repository](https://github.com/63Klabs/atlantis-starter-02-apigw-lambda-cache-data-nodejs/blob/main/application-infrastructure/template.yml).
+
 ### Metadata
 
 The Metadata section is used by the AWS Web Console and Atlantis config.py to display the parameters in a particular order. It is used to group like parameters together when being prompted for values for the CloudFormation stack.
@@ -448,15 +450,149 @@ Learn more: [AWS CloudFormation Templates: Outputs Section](https://docs.aws.ama
 
 ## 5. Identify the components of build process
 
-TODO
+As mentioned in previous tutorials, the `buildspec.yml` file executes commands to support deployment of your application.
+
+Ideally, there should be one buildspec file that utilizes Environment variables and scripts to make decisions on how the deployment should take place. This ensures that all builds, regardless of what type of instance (dev, test, prod) all follow the same steps and eliminate the need for maintaining multiple build files.
+
+The environment variables available in the build environment follow what is defined in the CodeBuild environment properties in the pipeline template.
+
+During the build process you can run scripts that performs tests, uses the AWS CLI and AWS CDK (Cloud Development Kit), gather external resource properties using the AWS SDK API, and even transform and manipulate files retrieved from your repository.
+
+This ensures the entire build and deployment process is automated.
+
+> Below you will find an explanation of steps in the buildspec file. Either follow along with the buildspec in your application repository, or view the original [`buildspec.yml` file in the Application Starter 02 repository](https://github.com/63Klabs/atlantis-starter-02-apigw-lambda-cache-data-nodejs/blob/main/application-infrastructure/buildspec.yml).
+
+For example, in the `buildspec.yml` file you are using in this tutorial, the following steps are performed:
+
+1. Print out the Python, Node, and AWS CLI versions and `NODE_ENV` value to the CodeBuild console for troubleshooting
+2. Sets a cache directory for npm and pip packages so they aren't fetched every time which speeds up the build and reduces overhead on the package servers.
+3. Install Python packages for the build environment (if any). These packages will be used by scripts that run during the build such as CDK, test, and transformation operations. These are separate from the packages used by your application during execution.
+4. Install Node Dev Dependencies for the build environment (if any). Similar to the Python packages, these will be used by scripts that run during the build such as CDK, test, and transformation operations. We will later remove the Dev Dependencies and just deploy your function with the proper Production Dependencies for execution.
+5. Run `npm test` to ensure your function tests complete successfully as we don't want to proceed with a deployment that fails its tests.
+6. Run `npm audit fix --force` to ensure there are no critical vulnerabilities. We don't want to deploy any function that has vulnerable dependencies.
+7. Run the Python script `./build-scripts/generate-put-ssm.py` to generate a key to be used for encrypting cached-data in DynamoDb and S3.
+8. Run the Python script `./build-scripts/update_template_timestamp.py` to manipulate the `template.yml` file, placing a current timestamp in the Lambda function version description. (This helps overcome a (bug?) issue when deploying some Lambda functions)
+9. Perform the AWS CLI command `aws cloudformation package` command which creates the artifacts for the deployment.
+10. Perform a search and replace in `template-configuration.json` using the Linux `sed` command. This replaces the placeholders (`$VAR_NAME$`) in the `template-configuration.json` file with real values. You can add additional placeholders in the file and replace them with existing or new variables you provide in the buildspec file and `sed` command.
+11. Sets the artifacts directory
+12. Sets the cache directory
 
 ### Secure secrets using SSM Parameter Store
 
-TODO
+This application utilizes AWS SSM Parameter store to securely manage secrets such as encryption and API keys.
+
+To prevent these secrets from being exposed in environment variables or template parameters we only access SSM Parameter store using the AWS SDK through build scripts and within our Lambda function.
+
+When you created the pipeline, you supplied a parameter for the SSM Parameter Store Hierarchy. This path-style organization that helps in maintaining all the secrets that are stored across your applications.
+
+For example, in your organization you may store all SAM based web service applications under the `/sam-web-service/` path. The pipeline builds out the base path it was given and adds the Deploy Environment and ProjectId and StageId to the path specific to the application. This also ensures that only your application has access to its own secrets.
+
+Instead of adding parameter store entries to the template, we utilize a script during the build to check for the existence of the SSM Parameter, and create it if it does not exist. This script not only checks and creates the parameter, but also adds all the relevant tags (by reading the `template-configuration.json` file) to maintain your organization's tagging policy.
+
+We will explore this script shortly.
+
+The Lambda function then loads the SSM Parameters during the configuration initialization before your handler is executed. By utilizing the Secrets Manager and SSM Parameter Store Lambda layer provided by AWS, the secrets are loaded and periodically rechecked for any changes during the life of your Lambda function.
+
+We will explore the configuration initialization and SSM Parameter Store access later.
+
+Learn more: [AWS Documentation: AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html)
+
+> Note: If you maintain applications that are able to rotate secrets, you can coordinate this using Secrets Manager. However, when using secrets and keys that do not require, or cannot receive, rotations, use SSM Parameter Store. SSM Parameter store is also useful for storing account identifiers and parameters that while semi-secret, or not secret at all, are easier to maintain outside of deployment variables and parameters.
+
+> Note: While you can store non-secret values in SSM Parameter Store, it may take a few extra milliseconds to initialize your functions after a Cold Start to obtain these values. You should only store non-secret values in Parameter Store if 1. You expect regular updates to the value outside of deployments or 2. Other applications need access (and you expect regular updates to the value--otherwise just use a stack export or other means.)
 
 ### Installs and scripts
 
-TODO
+As mentioned when we explored the steps performed in the buildspec, we perform a series of installs and script executions.
+
+It is important to note:
+
+1. The pipeline sets the default value of `NODE_ENV` to `production` in CodeBuild.
+2. We do a full dev install of Python and Node for running scripts specifically during the build.
+3. We remove, and therefore do not deploy, dev packages before packaging dependencies with the Lambda function.
+4. Though the Lambda environment variable `NODE_ENV` is set to `development` during `TEST` deployments, it does not have any `DevDependencies`
+and is set to `production` during `PROD`environment deployments.
+5. We also run tests and an audit to ensure the function passes all tests and its packages have no critical vulnerabilities.
+
+This multi-step approach, along with audits and tests, ensures that the code we are deploying is properly vetted and has a reduced attack surface.
+
+Also, by only deploying the necessary packages with the Lambda function, we reduce the Lambda size which improves Cold Starts and allows you to examine code in the Lambda console. DevDependencies are developer tools only necessary for local development environments and running tests. They do not belong in production as they bring extra bloat and attack surfaces.
+
+#### Build Scripts
+
+The `build-scripts` directory can be used to store scripts used during the build process. You'll notice two scripts to begin with, `generate-put-ssm.py` and `update_template_timestamp.py`.
+
+> Note: Any changes made by scripts to your application files are not saved back to the repository. This can be beneficial for automated practices, but should not be used when changes need to be pushed back to the repository. For example, checking the Lambda runtime and updating it should be done by a developer and committed back to the repository, not checked and updated during every build. The state of the repository combined with the environment settings should produce the build and deployment files in a replicable manner. Don't automate a process that should be taken care of at the source.
+
+##### update_template_timestamp.py
+
+As explained earlier, `update_template_timestamp.py` makes a small change to the `template.yml` file to get past a (bug?) issue in deploying Lambda versions.
+
+You can actually run this script from your local machine and it will update the following Lambda properties in your template file:
+
+```yaml
+VersionDescription: "Web Service Version Notes v0" # Use this To Overcome AliasLive Update Errors - Rarely need to update
+AutoPublishCodeSha256: "20250726T150600" # Use this To Overcome AliasLive Update Errors - Rarely need to update
+```
+
+You can run the following command locally and then check your `template.yml` file. It should contain the most recent timestamp for the above properties.
+
+```bash
+python3 ./application-infrastructure/build-scripts/update_template_timestamp.py template.yml
+```
+
+##### generate-put-ssm.py
+
+The script `generate-put-ssm.py` is useful in not only generating the encryption key used to keep your cached data safe in DynamoDb and S3, but also for generating values or creating SSM Parameters required by your application with the placeholder `BLANK` value.
+
+From your local command line, run the following command:
+
+```bash
+python3 ./application-infrastructure/build-scripts/generate-put-ssm.py -h
+```
+
+This will provide information about the various arguments and settings of the Python script.
+
+In general, there are three ways to use the script:
+
+Generate a 256 bit key and store it in the parameter CacheData_SecureDataKey in your application's hierarchy:
+
+```bash
+python3 ./build-scripts/generate-put-ssm.py ${PARAM_STORE_HIERARCHY}CacheData_SecureDataKey --generate 256
+```
+
+Create a parameter with a value of `BLANK` to be updated after deployment (Useful for making sure a Parameter is created and ready for accepting a secret key from the developer or administrator):
+
+```bash
+python3 ./build-scripts/generate-put-ssm.py ${PARAM_STORE_HIERARCHY}WeatherApiKey
+```
+ 
+Create a parameter with a pre-set value (either hard coded or determined by environment variables):
+
+```bash
+python3 ./build-scripts/generate-put-ssm.py ${PARAM_STORE_HIERARCHY}AcmeRegionalOffice --value 'CHI'
+```
+
+Why would you hard code? You probably wouldn't as you could just add it to your code, or as an Environment variable to your Lambda function. 
+
+Reasons why you might hard-code:
+
+- If your application sets the SSM Parameter which is then accessed by other applications, it would make sense.
+- Another possibility is that this is just a default value (like `BLANK`) that is expected to be updated later (and on a regular basis between deployments).
+- And finally, maybe instead of hardcoding, `--value` could be set by a variable in your build. (`--value ${ACME_REGIONAL_OFFICE_BASED_ON_AWS_REGION}`) and may be changed at a later date outside of a deployment (because a deployment could just as easily set a Lambda environment variable.)
+
+Outside of these three scenarios, it doesn't make sense to hard code (or even use an SSM Parameter) if:
+
+- You don't expect the value to change between deployments
+- Other applications do not need access to the value
+
+> Note: The `generate-put-ssm.py` script applies tags to each SSM Parameter it creates by applying the tags found in `template-configuration.json`.
+
+The `generate-put-ssm.py` script never overwrites existing parameters. If you need to change or regenerate a parameter, you either need to update it manually or delete it before redeploying your application.
+
+> Note: By default, CodeBuild only has permission to update SSM Parameters located under your application's specific Parameter Store path. If you need to create parameters that are used by other applications in a separate, shared path, you would need to use a pipeline that grants additional SSM Parameter path permissions. Or, if you don't need to automate the creation process, create it manually. Don't have your function performing operations outside its purpose, lifecycle, or ownership (separation of concerns). A separate script or process might be beneficial to explore.
+
+If your application requires access to additional SSM Parameters outside the hierarchy provided by the pipeline for your application, you must add read access to your Lambda's execution role under the SSM Parameter store section.
 
 ## Part II Summary
 
