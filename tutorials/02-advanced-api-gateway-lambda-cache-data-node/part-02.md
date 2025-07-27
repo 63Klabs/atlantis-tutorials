@@ -343,24 +343,73 @@ Learn more:
 
 ### Globals
 
-TODO
+Globals can be used to set common properties across API Gateway, Lambda, and State Machines (Step Functions) especially if you have multiple of each, preventing duplication. It is useful if there is a standard set of properties you use and do not change from application to application.
 
-[AWS CloudFormation Templates: Globals Section](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html)
+While you can set globals and override them in each of your resources, you will find it is a balance between keeping all of your settings together in the resource definition and keeping duplication to a minimum. It can be difficult, and messy, in some situations to maintain property settings in both global and resources.
+
+The Globals provided in the starter template represent values that typically do not change across the API and Lambda functions you deploy.
+
+```yaml
+Globals:
+  Api:
+    OpenApiVersion: 3.0.0
+    PropagateTags: True
+    TracingEnabled: !If [ IsNotDevelopment, True,  False] # X-Ray
+
+  Function:
+    PropagateTags: True
+    Tracing: !If [ IsNotDevelopment, "Active", !Ref 'AWS::NoValue'] # X-Ray
+
+  # StateMachine:
+  #   PropagateTags: True
+
+```
+
+Learn more: [AWS CloudFormation Templates: Globals Section](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html)
 
 ### Resources
 
-TODO
+The resource section is where you define all the functions, apis, roles, and logging. 
 
-TODO: Serverless vs Lambda and API Gateway
+Learn more: [AWS CloudFormation Templates: Resources Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html)
 
-[AWS CloudFormation Templates: Resources Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html)
+#### `Serverless` Resource Type vs `ApiGateway` and `Lambda`
+
+When developing serverless, use:
+
+- `AWS::Serverless::Api` 
+- `AWS::Serverless::Function`
+
+Over:
+
+- `AWS::ApiGateway::RestApi`
+- `AWS::Lambda::Function`
+
+According to AWS Serverless documentation:
+
+> A key element of the AWS SAM template is the AWS SAM template specification. This specification provides the short-hand syntax that, when compared to AWS CloudFormation, allows to you use fewer lines of code to to define the resources, event source mappings, permissions, APIs, and other properties of your serverless application.
+
+When you use the non-SAM version of resources, you will need to define additional resources manually that SAM would otherwise take care of for you.
+
+Use the `AWS::Serverless::*` version whenever you can!
+
+Learn more: [AWS SAM Developer Guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification.html)
 
 ### Using `ImportValue` instead of parameters
 
-TODO
+Critical stacks that provide resources to be used by other stacks within an account's region, may Export variables to be used by those other stacks. This is typically done to provide ARNs, resource names, and other properties so that they do not need to be entered as a parameter in every template that uses it.
 
-[AWS CloudFormation Templates: `Fn::ImportValue](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/intrinsic-function-reference-importvalue.html)
+This provides simplicity (the developer deploying an application stack doesn't need to hunt down an ARN) and security in that the stack exporting the variable cannot be deleted until there are no subsequent stacks using the variable. Also, if the stack exporting the variable is updated, updating the value of the variable, the other stacks only need to be re-deployed to update their use. No parameters need to be changed on individual stacks.
 
+The application you are using utilizes this for the Cache Data S3 bucket and DynamoDb table.
+
+```yaml
+  ENV_VAR: 
+    Fn::ImportValue:
+      'Fn::Sub': '${Prefix}-ExternalResourceArn'
+```
+
+Learn more: [AWS CloudFormation Templates: `Fn::ImportValue](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/intrinsic-function-reference-importvalue.html)
 
 ### Using `Fn::Transform` and `AWS::Include`
 
@@ -393,9 +442,9 @@ Learn More: [AWS CloudFormation Templates: Transform Include](https://docs.aws.a
 
 ### Outputs
 
-TODO
+The outputs section provides quick access to useful information about the stack, such as ARNs that would probably need to be copied and entered as parameters for other stacks or access to quick links in the console for resources such as logs and Lambda functions.
 
-[AWS CloudFormation Templates: Outputs Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html)
+Learn more: [AWS CloudFormation Templates: Outputs Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html)
 
 ## 5. Identify the components of build process
 
