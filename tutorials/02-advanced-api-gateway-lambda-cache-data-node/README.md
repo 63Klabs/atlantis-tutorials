@@ -57,7 +57,7 @@ By the end of this tutorial you will be able to deploy a production-ready applic
    1. Implement a copy of Example components for the Games API (using CachedData)
    2. Implement a basic service with a direct call to an endpoint with no caching (8 Ball)
    3. Implement a service using Data Access Object with an api key behind caching (Weather)
-   4. Implement a service with a call to a DynamoDb table
+   4. Implement a service with a write and call to a DynamoDb table
    4. Static, Sample, and Test data
    5. Create a Controller and View utilizing the four data services
 
@@ -68,6 +68,7 @@ By the end of this tutorial you will be able to deploy a production-ready applic
 3. Create Alarms and Rollbacks
 4. Create unit tests and automate pre-deployment testing
 5. Automate post-deployment testing
+6. Automate post-deployment API documentation
 
 ## Start
 
