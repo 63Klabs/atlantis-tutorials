@@ -1,6 +1,6 @@
 # Tutorial #2: Advanced API Gateway and Lambda using Cache-Data (Node)
 
-This tutorial is in two parts and covers many best practices used for production applications. Therefore, it is much longer than other tutorials. However, all following tutorials will utilize these concepts without necessarily calling them out.
+This tutorial is in four parts and covers many best practices used for production applications. Therefore, it is much longer than other tutorials. However, all following tutorials will utilize these concepts without necessarily calling them out.
 
 > This tutorial is THE tutorial that bridges learning and application development for production environments. It is also THE tutorial for working with the @63klabs/cache-data npm package.
 
@@ -10,7 +10,7 @@ An understanding of concepts outlined in previous tutorials is required.
 
 If you have not read through the [introductory README](../../README.md), or have not completed the [previous tutorials](../../README.md#tutorials), please do so before proceeding. Each tutorial builds on concepts from the previous and is not something to just "jump into."
 
-## Objective
+## Objectives
 
 By the end of this tutorial you will be able to deploy a production-ready application that utilizes a separate storage stack with S3 and DynamoDb resources for use with a Lambda application stack that provides an API endpoint for a web service that incorporates caching, monitoring, deployment tests, and production capabilities.
 
