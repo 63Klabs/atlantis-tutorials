@@ -24,19 +24,19 @@ TODO
 
 TODO
 
-### Request
+### Requests
 
 TODO
 
-### Controller
+### Controllers
 
 TODO
 
-### Service
+### Services
 
 TODO
 
-### View
+### Views and Utilities
 
 TODO
 
@@ -44,7 +44,7 @@ TODO
 
 TODO
 
-### Response
+### Responses
 
 TODO
 

@@ -47,12 +47,12 @@ By the end of this tutorial you will be able to deploy a production-ready applic
    3. Debug logs and Timer
 2. Identify components of the application structure
    1. Routes
-   2. Request
-   3. Controller
-   4. Service
-   5. View
+   2. Requests
+   3. Controllers
+   4. Services
+   5. Views and Utilities
    6. Models
-   7. Response
+   7. Responses
 3. Dive deeper into controllers, services, models, and views
    1. Implement a copy of Example components for the Games API (using CachedData)
    2. Implement a basic service with a direct call to an endpoint with no caching (8 Ball)
@@ -69,6 +69,7 @@ By the end of this tutorial you will be able to deploy a production-ready applic
 4. Create unit tests and automate pre-deployment testing
 5. Automate post-deployment testing
 6. Automate post-deployment API documentation
+7. Clean up
 
 ## Start
 
