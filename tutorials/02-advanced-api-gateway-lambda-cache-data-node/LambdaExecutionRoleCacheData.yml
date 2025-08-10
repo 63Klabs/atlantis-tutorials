@@ -1,0 +1,34 @@
+
+          # cache-data S3 bucket (from: https://www.npmjs.com/package/@63klabs/cache-data)
+          - Sid: LambdaAccessToS3BucketCacheData
+            Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:GetObjectVersion
+            Effect: Allow
+            Resource: !Sub 
+              - 'arn:aws:s3:::${BucketName}/cache/*'
+              - BucketName: !If 
+                  - HasCacheDataS3BucketName
+                  - !Ref CacheDataS3BucketName
+                  - Fn::ImportValue: 
+                      'Fn::Sub': '${Prefix}-CacheDataS3Bucket'
+
+          # cache-data DynamoDb table (from: https://www.npmjs.com/package/@63klabs/cache-data)
+          - Sid: LambdaAccessToDynamoDBTableCacheData
+            Action:
+            - dynamodb:GetItem
+            - dynamodb:Scan
+            - dynamodb:Query
+            - dynamodb:BatchGetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:BatchWriteItem
+            Effect: Allow
+            Resource: !Sub 
+              - 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}'
+              - TableName: !If 
+                  - HasCacheDataDynamoDbTableName
+                  - !Ref CacheDataDynamoDbTableName
+                  - Fn::ImportValue: 
+                      'Fn::Sub': '${Prefix}-CacheDataDynamoDbTable'
