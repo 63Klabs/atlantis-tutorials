@@ -8,15 +8,15 @@ Previously we used the `config.py` and `deploy.py` scripts in the SAM Config rep
 
 The config and deploy scripts can also deploy CloudFormation stacks that maintain other infrastructure such as storage, network, and even IAM roles and policies.
 
-These are manual processes as they don't occur often and don't require a deployment pipeline like an application does. They have a different **lifecycle** than your application, and are often handled and **owned** by those in roles outside of application developers. This follows the "Separation of Stacks" best practice to [Organize your stacks by lifecycle and ownership](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/best-practices.html#organizingstacks). 
+These are manual processes as they don't occur often and don't require a deployment pipeline like an application would. They have a different **lifecycle** than your application, do not require deployment and testing automation, and are often handled and **owned** by those in roles outside of application developers. This follows the "Separation of Stacks" best practice to [Organize your stacks by lifecycle and ownership](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/best-practices.html#organizingstacks). 
 
 # 2. Create a cache storage stack with S3 and DynamoDb resources
 
-> An AWS account can only have ONE cache storage stack per Prefix, per region. Check the CloudFormation stacks via the AWS Web Console for the existence of `<prefix>-cache-data-storage`. If it already exists, read through but skip the act of configuring and deploying this solution. We will visit storage stacks again in a later tutorial.
+> An AWS account can only have ONE cache storage stack per Prefix, per region. Check the CloudFormation stacks via the AWS Web Console for the existence of `<prefix>-cache-data-storage`. If it already exists, read through (but skip the act of) configuring and deploying this solution. We will visit storage stacks again in a later tutorial.
 
 If `<prefix>-cache-data-storage` does not exist as a CloudFormation stack, in the SAM Config repository, create the storage configuration for cache-data.
 
-> Note: If you have not cloned your organization's SAM Config repository to your local machine, refer to the [Introductory Read me: SAM Configuration Repository](../../README.md#sam-configuration-repository)
+> Note: If you have not yet cloned your organization's SAM Config repository to your local machine, refer to the [Introductory Read me: SAM Configuration Repository](../../README.md#sam-configuration-repository)
 
 ```bash
 ./cli/config.py storage acme cache-data --profile ACME_DEV_PROFILE
@@ -28,14 +28,16 @@ When prompted to select a template you'll see a list of templates that differs f
 
 Choose `template-storage-cache-data.yml` since it is an already provided template specific for use with the `63klabs/cache-data` NPM package.
 
-After finishing the prompts, copy, paste and execute the deploy command from the config output.
+After filling in the parameters and tags, you will be asked to provide a `StorageServiceRoleArn`. This can be obtained by looking at the outputs for the `<PREFIX>-storage-service-role` stack in CloudFormation.
+
+After finishing the prompts, copy, paste and execute the `deploy` command from the config output.
 
 ```bash
 # Perform this command in the SAM Config Repo
 ./cli/deploy.py storage acme cache-data default --profile ACME_DEV_PROFILE
 ```
 
-After a successful deployment, be sure to commit and push your configuration to the SAM config repository.
+After a successful deployment, be sure to commit and push your configuration to your organization's SAM config repository.
 
 # 3. Caching using DynamoDb table and an S3 bucket
 
@@ -43,9 +45,10 @@ Why are we using both DynamoDb and S3?
 
 First, let's explore how the cache works. We'll get into the actual code and implementation later, but for now we'll just give an overview.
 
-Cache-Data is a **backend** cache, separate from the **frontend** cache you may use via a Content Delivery Network (CDN) offered through CloudFront or even API Gateway.
+Cache-Data is a **backend** cache, separate from the **frontend** cache you may use via a Content Delivery Network (CDN) offered through CloudFront or API Gateway, and separate from **client-side** cache maintained by the. browser.
 
-- **Front-end** caching caches the requests coming in from your users.
+- **Client-side** caching is performed by the browser.
+- **Front-end** caching caches the requests coming in from your users in an entire geographic region.
 - **Back-end** caching caches the requests your _application_ makes to back-end data sources.
 
 Suppose you have a company directory API for use on a public-facing website. Most likely the directory information only changes nightly. When a visitor hits your company directory page, it calls the API. If you put caching in front of your API then it can handle the requests for a time period without hitting yor backend and incurring costs.
@@ -74,6 +77,12 @@ D-.->S[S3]
 C-->E[Data Source]
 ```
 
+Wouldn't an in-memory cache be better than reaching out to DynamoDb and S3?
+
+Yes, but an in-memory cache is not persistent for Lambda concurrency. If you have multiple instances of your application running, each instance would have its own in-memory cache. This means that if one instance has cached data, another instance would not be able to access it. This makes it different than say running Express.js on EC2.
+
+Besides, on average, you will see that DynamoDb access is under 100ms which is still pretty fast and reliable.
+
 # 4. Cache security
 
 The storage template for cache-data already has data encryption for DynamoDb and S3 enabled at the resource level.
@@ -98,7 +107,13 @@ Another benefit of using output variables is that while a variable is in use wit
 
 For example, if you deployed applications using the cache-data storage, the Cache-Data storage stack could not be deleted until those other stacks were modified to not use it. This is helpful in making sure vital resources that other applications depend on are not deleted accidentally. Also, if the value of the variable ever changes, then the stacks using the variable will need to be redeployed, which can be much easier than manually going around and updating the parameters of each stack.
 
-While this is useful to know, and it will come in handy later, other than knowing that is where your application stack will know where to store its cached data, you don't need to know much more about stack export variables for now.
+The Cache-Data stack exports several values that you will see used in your application template:
+
+  - Managed policy ARN to include in your Lambda Execution role's `ManagedPolicyArns` property to provide access permissions.
+  - S3 bucket name and ARN.
+  - DynamoDb table name and ARN.
+
+While this is useful to know, and it will come in handy later, you don't need to know much more about stack export variables for now.
 
 To view all exports within your account's region:
 
@@ -116,9 +131,12 @@ aws cloudformation describe-stacks --stack-name STACK_NAME --query "Stacks[0].Ou
 
 - Stacks are organized by lifecycle and owner.
 - In addition to a Pipeline and Application stack, you may manage a Storage stack.
-- Storage stacks may be shared among all instances in an application, or among many applications
-- Cache-Data storage uses encryption and hashing to keep data between applications and instances separate
+- Storage stacks may be shared among all instances in an application, or among many applications.
+- Cache-Data storage uses encryption and hashing to keep data between applications and instances separate.
 - Keeping storage stacks separate from applications helps with the practice of stack separation and to prevent accidental data deletion
-- Stacks can export variables to be used in other stacks within an account's region
+- Stacks can export variables to be used in other stacks within an account's region. For Example:
+  - Managed policy ARN to include in your Lambda Execution role to provide access permissions.
+  - S3 bucket name or ARN.
+  - DynamoDb table name or ARN.
 
 [Move on to Part II](./part-02.md)

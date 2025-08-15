@@ -1,3 +1,33 @@
+Resources:
+
+  # Alternate Lambda Function and Execution Role Example can be found at:
+  # https://github.com/63Klabs/cache-data/blob/main/docs/00-example-implementation/example-template-lambda-function.yml
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+
+    # .....
+
+    Properties:
+
+      # ....
+
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [lambda.amazonaws.com]
+          Action: sts:AssumeRole
+
+      # ....
+
+      Policies:
+      
+      - PolicyName: LambdaResourceAccessPolicies
+        PolicyDocument:
+          Statement:
+
+          # ...
 
           # cache-data S3 bucket (from: https://www.npmjs.com/package/@63klabs/cache-data)
           - Sid: LambdaAccessToS3BucketCacheData

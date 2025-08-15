@@ -1,13 +1,13 @@
 
 # Part II: Application Starter 02 API Gateway with Lambda using Cache-Data (Node.js)
 
-> Uses [Atlantis App Starter - 02 - API Gateway and Lambda using @63Klabs/Cache-Data (Node)](https://github.com/63Klabs/atlantis-starter-02-apigw-lambda-cache-data-nodejs)
+> Uses [Atlantis App Starter 02: API Gateway and Lambda using @63Klabs/Cache-Data (Node)](https://github.com/63Klabs/atlantis-starter-02-apigw-lambda-cache-data-nodejs)
 
 Refer to the README in the app starter GitHub repository above for an overview of the code.
 
 ## 1. Seed repository and create pipeline
 
-Using the `create_repo` script in your organization's SAM Config repository, create and seed the repository with application starter 02.
+Using the `create_repo.py` script in your organization's SAM Config repository, create and seed the repository with application starter 02.
 
 ```bash
 ./cli/create_repo.py tutorial-games-proxy --profile ACME_DEV_PROFILE
@@ -17,7 +17,7 @@ Choose application starter 02 (`atlantis-starter-02-apigw-lambda-cache-data-node
 
 Clone the application's repository to your local environment and merge the `dev` branch into the `test` branch without making any changes.
 
-> When staring new projects it is a good idea to start off with known, working code and get the initial "Hello" deployment working before making changes.
+> When starting new projects it is a good idea to start off with known, working code and get the initial "Hello" deployment working before making changes.
 
 In the SAM Config repository, create the pipeline for your application.
 
@@ -406,9 +406,30 @@ This provides simplicity (the developer deploying an application stack doesn't n
 The application you are using utilizes this for the Cache Data S3 bucket and DynamoDb table.
 
 ```yaml
-  ENV_VAR: 
-    Fn::ImportValue:
-      'Fn::Sub': '${Prefix}-ExternalResourceArn'
+  AppFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+    # ....
+      Environment:
+        Variables:
+          CACHE_DATA_DYNAMO_DB_TABLE: 
+            Fn::ImportValue:
+              'Fn::Sub': '${Prefix}-CacheDataDynamoDbTable' # relies on the Cache Data storage stack output
+          CACHE_DATA_S3_BUCKET: !If 
+            Fn::ImportValue:
+              'Fn::Sub': '${Prefix}-CacheDataS3Bucket' # relies on the Cache Data storage stack output```
+```
+
+And to add a Managed Policy from the Cache Data storage stack to provide access to the Cache-Data resources in your Lambda's Execution role:
+
+```yaml
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      # ....
+      ManagedPolicyArns:
+        - Fn::ImportValue:
+          'Fn::Sub': '${Prefix}-CacheDataManagedLambdaExecutionRolePolicy' # relies on the Cache Data storage stack output
 ```
 
 Learn more: [AWS CloudFormation Templates: `Fn::ImportValue](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/intrinsic-function-reference-importvalue.html)
@@ -595,5 +616,22 @@ The `generate-put-ssm.py` script never overwrites existing parameters. If you ne
 If your application requires access to additional SSM Parameters outside the hierarchy provided by the pipeline for your application, you must add read access to your Lambda's execution role under the SSM Parameter store section.
 
 ## Part II Summary
+
+- Just like passing parameters or arguments into a method or function in your code, you can pass parameters and variables between AWS resources.
+- The Metadata section can be used to assist in deployment of stacks by grouping and display stack parameters in a particular order.
+- The Parameters section is where you define the parameters that can be passed to your stack.
+  - The Pipeline Deploy stage sets required Atlantis parameters when deploying your application stack.
+  - Pipeline parameters, along with default parameter values, can be overridden using `template-configuration.json`
+- The Mappings section is where you define an array of values to choose from based on other values.
+- The Conditions section is where you define boolean values based on other values to be used in your template.
+- The Globals section is where you define common properties for resources such as Lambda and API Gateway.
+- The Resources section is where you define the resources that make up your application.
+- The Outputs section is where you define the outputs of your stack, such as ARNs, AWS Console URLs, and exports.
+- Serverless resource types assist in making your CloudFormation template more concise
+- The ImportValue intrinsic function allows you to import values from other CloudFormation stacks.
+- The Fn::Transform intrinsic function allows you to include external templates or files in your CloudFormation template.
+- The buildspec.yml file is where you define the steps to build and deploy your application
+  - Perform package and library installs
+  - Run build or transformation scripts and Linux or AWS CLI commands
 
 [Move on to Part III](./part-03.md)
