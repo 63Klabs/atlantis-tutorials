@@ -456,7 +456,7 @@ git push
 
 This time, as the code moves through the pipeline, you may notice that the CloudFormation stage takes longer than before.
 
-This is because production branches (`beta`, `stage`, `main`) typically use a _gradual_ deployment method.
+This is because production branches (`beta`, `stage`, `main`) typically use a _gradual_ deployment method which will be explained later.
 
 ## 13. Deployment Strategies: `TEST` vs `PROD`
 
@@ -466,11 +466,17 @@ Any deployment environment that should mimic a **Production** environment is con
 
 `TEST` environments deploy with fewer resources and increased logging for debugging purposes. `PROD` environments are production-like environments where the additional resources (such as alarms and dashboards which incur additional cost) have a place to be previewed and tested in `beta` or `stage` before moving to production. The `beta` stage may also be used in conjunction with a CloudFront distribution to perform blue/green testing.
 
-Another noticable difference is that `PROD` environments utilize gradual deployments. This means that after a deploy to a production-like environment, traffic is slowly shifted from the old version of the application to the new version. If errors occur in the new version during the shift, the production environment can revert back to the old version.
+Another noticeable difference is that `PROD` environments utilize gradual deployments. This means that after a deploy to a production-like environment, traffic is slowly shifted from the old version of the application to the new version. If errors occur in the new version during the shift, the production environment can revert back to the old version.
 
-It is important to note that during a gradual deployment the CloudFormation status will remain as _In Progress_ while the shift is occuring. Also, if you refresh the endpoint URL you will occasionally shift between the old and new version.
+It is important to note that during a gradual deployment the CloudFormation status will remain as _In Progress_ while the shift is occurring. Also, if you refresh the endpoint URL you will occasionally shift between the old and new version.
 
-### Features of `TEST` environments
+For more information on gradual deployments, see: [Deploying serverless applications gradually with AWS SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/automating-updates-to-serverless-apps.html)
+
+### Typical Characteristics of `TEST` environments
+
+How you determine what is created in TEST vs PROD is up to you and your organization.
+
+However, typically in a TEST environment:
 
 - Alarms are not created (they cost money and will be reserved for PROD deployments)
 - Dashboards are not created (they cost money and will be reserved for PROD deployments) (We don't use dashboards in this simple app starter but will see them in a future tutorial)
@@ -478,7 +484,7 @@ It is important to note that during a gradual deployment the CloudFormation stat
 - Lambda logging levels can be set higher to allow for greater debugging
 - Shorter CloudWatch log retention
 
-### Features of `PROD` environments
+### Typical Characteristics of `PROD` environments
 
 - Alarms are created
 - Dashboards are created
@@ -486,7 +492,7 @@ It is important to note that during a gradual deployment the CloudFormation stat
 - Lambda logging levels can be set lower, only logging important information such as final execution information, errors, and warnings.
 - Longer CloudWatch log retention
 
-### Don't Confuse `DeployEnvironment` with `NODE_ENV` or `StageId`
+### Don't Confuse `DEPLOY_ENVIRONMENT` with `NODE_ENV` or `StageId`
 
 If you are familiar with Node package dependencies, you know that there are dependencies reserved for development that are not included when an application is deployed to production. This typically includes developer tools and testing packages.
 
@@ -494,9 +500,9 @@ Setting `NODE_ENV` to `development` on your local machine is fine, but by defaul
 
 So remember, `NODE_ENV` is always set to `production` during deployments.
 
-Also, while the `test` branch and `test StageId` is named similar to `DeployEnvironment TEST`, the `DeployEnvironment PROD` can refer to any branch or `StageId` that should be _production-like_ for staging, beta testing, or production purposes. So a `PROD` environment can be assumed by `beta`, `stage`, `staging`, `main` or `prod` branches/stages.
+Also, while the `test` branch and `test StageId` is named similar to `DEPLOY_ENVIRONMENT TEST`, the `DEPLOY_ENVIRONMENT PROD` can refer to any branch or `StageId` that should be _production-like_ for staging, beta testing, or production purposes. So a `PROD` environment can be assumed by `beta`, `stage`, `staging`, `main` or `prod` branches/stages.
 
-Finally, you can use `DeployEnvironment` to set Lambda environment variables for internal testing and logging. For example, if you look at the environment variables in the Lambda template:
+Finally, you can use `DEPLOY_ENVIRONMENT` to set Lambda environment variables for internal testing and logging. For example, if you look at the environment variables in the Lambda template:
 
 ```yaml
 
@@ -513,16 +519,16 @@ Resources:
 
       Environment:
         Variables:
-          detailedLogs: !If [ IsProduction, "0",  "5"] # 0 for prod, 2-5 for non-prod
-          deployEnvironment: !Ref DeployEnvironment
+          LOG_LEVEL: !If [ IsProduction, "0",  "5"] # 0 for prod, 2-5 for non-prod
+          DEPLOY_ENVIRONMENT: !Ref DeployEnvironment
           paramStore: !Ref ParameterStoreHierarchy
           lambdaTimeoutInSeconds: !Ref FunctionTimeOutInSeconds # so we can calculate any external connection timeout in our code
 
 ```
 
-The Lambda environment variable `detailedLogs` is set to `0` for `PROD` and `5` for anything that is not production-like (`TEST` and `DEV`)
+The Lambda environment variable `DEPLOY_ENVIRONMENT` is set to `0` for `PROD` and `5` for anything that is not production-like (`TEST` and `DEV`)
 
-The Lambda environment variable `deployEnvironment` can be used to shorten cache expiration for testing purposes if your function caches data.
+The Lambda environment variable `DEPLOY_ENVIRONMENT` can be used to shorten cache expiration for testing purposes if your function caches data.
 
 ### Use Sparingly
 
