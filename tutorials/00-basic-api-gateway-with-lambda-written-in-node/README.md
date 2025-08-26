@@ -519,10 +519,11 @@ Resources:
 
       Environment:
         Variables:
+		  NODE_ENV: !If [ IsProduction, "production",  "development"]
           LOG_LEVEL: !If [ IsProduction, "0",  "5"] # 0 for prod, 2-5 for non-prod
           DEPLOY_ENVIRONMENT: !Ref DeployEnvironment
-          paramStore: !Ref ParameterStoreHierarchy
-          lambdaTimeoutInSeconds: !Ref FunctionTimeOutInSeconds # so we can calculate any external connection timeout in our code
+          PARAM_STORE_PATH: !Ref ParameterStoreHierarchy
+          LAMBDA_TIMEOUT_IN_SEC: !Ref FunctionTimeOutInSeconds # so we can calculate any external connection timeout in our code
 
 ```
 
