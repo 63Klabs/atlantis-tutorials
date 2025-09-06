@@ -29,6 +29,7 @@ We will utilize an app starter and scripts in the SAM Config repository to:
 11. Deploy the `prod` Pipeline from the SAM Config repository
 12. Perform a complete application deployment cycle from `dev` to `prod`
 13. Deployment Strategies: `TEST` vs `PROD`
+14. Clean-Up
 
 ## 1. Create a Repository and Seed it Using `create_repo.py`
 
@@ -538,3 +539,48 @@ Traditionally development and test environments have utilized smaller memory and
 Also, don't go overboard when turning on or off resources and features. The more complex your conditional resources become, the greater chance for error.
 
 You'll receive the greatest benefits by turning off alarms, dashboards, and log retention when not in production.
+
+## 14. Clean Up
+
+To avoid ongoing charges to your AWS account, delete the resources created in this tutorial.
+
+> Note: This step is optional and is dependent upon your user permissions and whether or not you wish or are required to delete the stacks created in this tutorial. It is recommended, for practice and if you have the proper permissions, to delete at least one of your stages. This helps with practice and you can always go through the steps of creating and deploying the stage later. That's the nice thing about automation!
+
+The `delete.py` script is provided to perform clean-up operations in proper order.
+
+As the accidental deletion of stacks can be devastating, the delete script requires several confirmation steps.
+
+You will be required to provide the ARNs for both the pipeline and application stack. You may obtain these from the Stack Info tab in the CloudFormation web console.
+
+> Proceed with caution! Double check your work and make sure you are deleting the correct stack!
+
+There are 2 manual steps that need to take place prior to running the delete script. Some organizations may restrict who can perform these steps to ensure proper checks and balances.
+
+1. Manually add a tag to the pipeline stack with the key `DeleteOnOrAfter` and a value of a date in `YYYY-MM-DD` format. (Add `Z` to end for UTC. Example `2026-07-09Z`). This can be done using the AWS CLI:
+	- `aws resourcegroupstaggingapi tag-resources --resource-arn-list "arn:aws:cloudformation:region:account:stack/stack-name/stack-id" --tags DeleteOnOrAfter=YYYY-MM-DD --profile your-profile`
+	- Be sure to replace the ARN in the command with the pipeline stack ARN.
+	- Successful completion will result in receiving an empty `FailedResourcesMap`
+	- You can double check by going to the pipeline stack in the CloudFormation console.
+2. Disable termination protection: `aws cloudformation update-termination-protection --stack-name STACK_NAME --no-enable-termination-protection`
+    - Be sure to replace `STACK_NAME` with the name of the stack. You do not need the full ARN for this command.
+	- Do this for both the `pipeline` and `application` stacks.
+
+The delete script is now ready to be ran from the SAM config repository:
+
+```bash
+# Perform this command in the SAM Config Repo
+./cli/delete.py pipeline acme py8ball-adv beta --profile ACME_DEV
+```
+
+You will have the chance to either retain the stage's environment settings in the `samconfig` file for later re-deployment, or to delete it completely. Once all stage environments of a `samconfig` file are deleted the file and directory for that project is also deleted.
+
+Be sure to perform this operation for any unwanted stages of your application (`test`, `beta`, `prod`, etc.).
+
+Performing the delete does not delete the repository. Since the size of the repository is minimal you will not incur charges and may leave the repository as-is for future reference.
+
+## Summary
+
+Congratulations! You have completed Tutorial #0! You have successfully deployed a basic API Gateway with Lambda written in Node using an automated CI/CD pipeline. You have also learned about configuring and deploying various stage environments such as test, beta, and production using the Atlantis scripts.
+
+- [Next: Tutorial #1: Basic API Gateway with Lambda written in Python](../01-basic-api-gateway-with-lambda-written-in-python/README.md)
+- [All Tutorials](../../README.md)
