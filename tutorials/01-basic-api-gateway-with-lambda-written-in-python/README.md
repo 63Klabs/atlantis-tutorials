@@ -87,13 +87,12 @@ The phases you can use are:
 - pre_build
 - build
 - post_build
-- finally
 
-Each phase is optional. You can use as many or as few as you need and you can assign commands as you see fit. Do not worry too much about whether a command should be in the `pre_build` or `build` phase, only the logical placement for sequence and organization required for your application. You should follow a standard practice set by yourself, or your organization, to ensure future maintainability by you or other developers.
+Each phase is optional.
 
 If the `install` or `pre_build` phase fails, subsequent phases are skipped. However, if `build` fails, the `post_build` is still attempted. Knowing this will assist in determining where to place your commands. For a flow chart see: [Build phase transitions](https://docs.aws.amazon.com/codebuild/latest/userguide/view-build-details-phases.html).
 
-Each phase can contain a list of commands, and a finally step can be specified for each phase to ensure certain commands always run, even if other commands within that phase fail. This phased approach provides granular control over the build process in AWS CodeBuild.
+Each phase can contain a list of `commands`, and a `finally` step can be specified for each phase to ensure certain commands always run, even if other commands within that phase fail. This phased approach provides granular control over the build process in AWS CodeBuild.
 
 ### Install
 
@@ -101,11 +100,11 @@ This phase is typically used for setting up the build environment and installing
 
 ### Pre-build
 
-This phase executes commands before the main build process begins. It can be used for preliminary tasks such as running pre-build scripts, setting up environment variables, or performing static code analysis.
+This phase executes commands before the main build process begins. It can be used for preliminary tasks such as running pre-build scripts, setting up environment variables, running unit tests, or performing static code analysis.
 
 ### Build
 
-This is the core phase where the actual build commands are executed. This includes compiling code, running tests, and packaging the application.
+This is the core phase where the actual build commands are executed. This includes generating or transforming files, running AWS CLI and CDK commands, scripts, and packaging the application.
 
 ### Post-build
 
@@ -122,6 +121,8 @@ TODO
 
 ## 5. Create a simple script to run during CodeBuild
 
+You can use scripts to perform many tasks to assist in automating your deployment process. By leveraging the AWS CLI and CDK you can generate or modify resources such as SSM parameters, copy files to an S3 bucket, read the state of other resources, generate and transform files based on environment variables or data files, and more.
+
 TODO
 
 > Note: Scripts must be able to run "headless" as there is no chance to respond to interactive prompts during the CodeBuild process. If you write a script that you wish to use both interactively when running locally and headless when executed in a CodeBuild environment, you should include a flag such as `--headless` and acquire prompt information either through environment variables or parameters passed to the script.
@@ -132,11 +133,11 @@ TODO
 
 As explained earlier, we perform two installs of Python and Node packages. Let's dive into this deeper.
 
-The first install is for the build environment. This includes packages needed to run build scripts, perform linting, tests, and any other tasks necessary to prepare the application for deployment. These packages are installed during the `install` phase and executed during the `pre_build` phase. As mentioned before, if either the `install` or `pre_build` phases fail, the `build` and `post_build` phases are not attempted.
+The first install is for the build environment. This includes packages needed to run build scripts, perform linting, tests, and any other tasks necessary to prepare the application for deployment. These packages are installed during the `install` phase and executed during the `pre_build` phase. As mentioned before, if either the `install` or `pre_build` phases fail, the `build` and `post_build` phases are skipped.
 
-The second install is for the application code being packaged and deployed to Lambda. This includes Node or Python packages/libraries that are required for the application to run in its target Lambda environment. These packages are installed in the `pre_build` phase of the buildspec file.
+The second install occurs after tests and pre-build scripts have completed. This install is for packages and libraries that are to be included with the application code being packaged and deployed to Lambda. This includes Node or Python packages/libraries that are required for the application to run in its target Lambda environment. These packages are installed in either the `pre_build` or `build` phases of the buildspec file.
 
-Compare the buildspec of this tutorial with the [buildspec of Application Starter #00](https://github.com/63Klabs/atlantis-starter-00-basic-apigw-lambda-nodejs/blob/main/application-infrastructure/buildspec.yml) used in the previous tutorial. You'll notice that because Node packages were installed in the previous starter, there are additional flags for production vs development and security audits.
+Compare the buildspec of this tutorial with the [buildspec of Application Starter #00](https://github.com/63Klabs/atlantis-starter-00-basic-apigw-lambda-nodejs/blob/main/application-infrastructure/buildspec.yml) used in the previous tutorial. You'll notice that because Node packages were installed in the previous starter, there are additional flags for production vs development including a security audit.
 
 ## 7. Package and Library Cache
 
