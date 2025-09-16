@@ -117,13 +117,47 @@ This phase runs after the build phase completes, regardless of whether the build
 
 ## 4. Review CodeBuild logs in the console
 
-TODO
+You can examine the logs from CodeBuild to review any errors or information about how your scripts executed during the build process.
+
+From the CloudFormation stack of your pipeline in the console, go to the Outputs section and use the link provided for direct access to the pipeline.
+
+From the CodePipeline console, click on the Build stage box to open the details panel. Then click on the link to the CodeBuild project.
+
+This will take you to the CodeBuild console where you will be able to find the logs.
+
+You'll see that because the `buildspec.yml` file includes tests, scripts, and bash outputs, there is a lot of information contained within the logs for troubleshooting purposes.
+
+- Since an `ls` command is used at various points, you'll see a listing of the files. This is useful for determining if files were generated or transformed as expected.
+- You can also see the outputs from the various scripts that were executed during the build process such as tests.
+- You can also see the outputs from the AWS CLI and CDK commands that were executed during the build process.
 
 ## 5. Create a simple script to run during CodeBuild
 
 You can use scripts to perform many tasks to assist in automating your deployment process. By leveraging the AWS CLI and CDK you can generate or modify resources such as SSM parameters, copy files to an S3 bucket, read the state of other resources, generate and transform files based on environment variables or data files, and more.
 
-TODO
+Python scripts can use the AWS SDK `boto` library to execute commands that read, list, or modify external resources. One example is the SSM parameter Python script that generates a key, creates a new SSM Parameter in Parameter Store, and reads the `template-configuration.json` file to properly tag the SSM parameters it creates.
+
+In order for scripts run in CodeBuild to access other resources, CodeBuild must have permissions similar to how your Lambda function requires an Execution role to access resources such as DynamoDb or S3. You can review the IAM Policy for your CodeBuild instance by checking the CodeBuildServiceRole IAM Policy found within your CloudFormation's resources section. (If you ever need to expand the permissions of CodeBuild, you can add a managed policy when you configure your pipeline.)
+
+Take some time to examine the scripts (located in the `build-scripts` directory) and commands listed in your `buildspec.yml` file and compare with the outputs for each in your CodeBuild log.
+
+Create a simple Python script that prints out "Hello World":
+
+```python
+# build-scripts/hello.py
+print("Hello World")
+```
+
+Make sure to place it in your `build-scripts` directory. Then add a command to your `buildspec.yml` file to execute it at the start of the `build` stage:
+
+```yaml
+phases:
+  # ... other phases
+  build:
+	commands:
+	  - python3 build-scripts/hello.py
+	  # ... other commands
+```
 
 > Note: Scripts must be able to run "headless" as there is no chance to respond to interactive prompts during the CodeBuild process. If you write a script that you wish to use both interactively when running locally and headless when executed in a CodeBuild environment, you should include a flag such as `--headless` and acquire prompt information either through environment variables or parameters passed to the script.
 

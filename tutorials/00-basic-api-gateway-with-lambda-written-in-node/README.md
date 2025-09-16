@@ -521,16 +521,16 @@ Resources:
       Environment:
         Variables:
 		  NODE_ENV: !If [ IsProduction, "production",  "development"]
-          LOG_LEVEL: !If [ IsProduction, "0",  "5"] # 0 for prod, 2-5 for non-prod
+          LOG_LEVEL: !If [ IsProduction, "INFO", "DEBUG"] # 0-2 (ERROR, WARN, INFO) for prod, 3-5 (MSG, DIAG, DEBUG) for non-prod
           DEPLOY_ENVIRONMENT: !Ref DeployEnvironment
           PARAM_STORE_PATH: !Ref ParameterStoreHierarchy
           LAMBDA_TIMEOUT_IN_SEC: !Ref FunctionTimeOutInSeconds # so we can calculate any external connection timeout in our code
 
 ```
 
-The Lambda environment variable `DEPLOY_ENVIRONMENT` is set to `0` for `PROD` and `5` for anything that is not production-like (`TEST` and `DEV`)
+The Lambda environment variable `LOG_LEVEL` is set to `INFO` for `PROD` and `DEBUG` for `TEST` and `DEV`.
 
-The Lambda environment variable `DEPLOY_ENVIRONMENT` can be used to shorten cache expiration for testing purposes if your function caches data.
+The Lambda environment variable `DEPLOY_ENVIRONMENT` can be used to within your function to determine application configuration settings.
 
 ### Use Sparingly
 
