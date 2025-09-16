@@ -133,7 +133,7 @@ Resources:
       Variables:
         NODE_ENV: "production"
         DEPLOY_ENVIRONMENT: !Ref DeployEnvironment
-        LOG_LEVEL: !If [ IsProduction, "0", "5"]
+        LOG_LEVEL: !If [ IsProduction, "INFO", "DEBUG"] # 0-2 (ERROR, WARN, INFO) for prod, 3-5 (MSG, DIAG, DEBUG) for non-prod
         PARAM_STORE_PATH: !Ref ParameterStoreHierarchy 
 		CACHE_DATA_TIME_ZONE_FOR_INTERVAL: !Ref CacheDataTimeZoneForInterval 
         CACHE_DATA_AWS_X_RAY_ON: true
@@ -442,7 +442,7 @@ The `AWS::Include` transform macro allows you to separate out, or re-use, portio
 
 If you re-use an S3 bucket or DynamoDb definition among several templates you can store that template in S3.
 
-The application infrastructure template separates out the definitions for `Dashboard` and `Swagger` to make the overall template more manageable. Instead of S3, these are included in the same application infrastructure directory so that they can be customized to suit your application's needs. If you examine the `dashboard` and `swagger` template files you'll see they are quite lengthy, written in json and would clutter up the main template.
+The application infrastructure template separates out the definitions for `Dashboard` and `openapi-spec` to make the overall template more manageable. Instead of S3, these are included in the same application infrastructure directory so that they can be customized to suit your application's needs. If you examine the `dashboard` and `openapi-spec` template files you'll see they are quite lengthy, written in json and would clutter up the main template.
 
 ```yaml
 Resources:
@@ -453,7 +453,7 @@ Resources:
         "Fn::Transform":
           Name: "AWS::Include"
           Parameters:
-            Location: ./template-swagger.yml
+            Location: ./template-openapi-spec.yml
 
   Fn::Transform:
     Name: AWS::Include
