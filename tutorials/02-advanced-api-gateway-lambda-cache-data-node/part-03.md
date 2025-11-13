@@ -66,9 +66,9 @@ TODO
 
 ### Implement a service with a write and call to a DynamoDb table
 
-DynamoDb can be used to keep track of user profiles, cached data, sessions, static application data, and more. When ever your data does not have multiple keys, does not require SQL or joins, it serves the purpose of being a reliable, scalable (serverless) and low latency data source.
+DynamoDb can be used to keep track of user profiles, cached data, sessions, static application data, and more. When ever your data does not have multiple keys, does not require SQL or joins, DyamoDB can serve the purpose of being a reliable, scalable (serverless) and low latency data source.
 
-For this example, we will use a simple DynamoDb table to store responses with a unique identifier allowing the ability to retrieve and share a link with others during a period of time. The link will expire after a set amount of time such as 60 minutes or 24 hours.
+For this example, we will use a simple DynamoDB table to store responses with a unique identifier allowing the ability to retrieve and share a link with others during a period of time. The link will expire after a set amount of time such as 60 minutes or 24 hours.
 
 First, we will add our own DynamoDb table definition to our application template:
 
@@ -90,7 +90,7 @@ Resources:
       TimeToLiveSpecification: # This will keep track of when automatically expire game tokens
         AttributeName: "expiry"
         Enabled: true
-	  BillingMode: PAY_PER_REQUEST
+	  BillingMode: PAY_PER_REQUEST # As a web service it will be sporadic
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: !If [IsProduction, true, false] # set to true for non-prod as well if needed
 ```

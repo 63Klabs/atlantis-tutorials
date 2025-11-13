@@ -142,5 +142,5 @@ Then, move on to:
    - Network Stack using CloudFront and Route53
 4. Coming Soon: Application Starter: 04 Event Triggered Lambda
 5. Coming Soon: Application Starter: 05 Event Triggered Step Function
-6. Coming Soon: Application Starter: 06 Video Transcoding using Elemental MediaConvert
+6. [Tutorial #6: Video Transcoding using Elemental MediaConvert](https://github.com/chadkluck/serverless-video-converter)
 7. Coming Soon: Application Starter: 07 SQS and Lambda
