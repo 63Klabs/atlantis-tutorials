@@ -2,9 +2,133 @@
 
 ## 1. Inspect and utilize various `cache` and `tools` features of the @63klabs/cache-data npm package
 
-TODO
+It is always recommended to first deploy the application in its "Hello World" configuration to ensure proper permissions and configurations are established.
+
+We will now go over the default "Hello World" configuration to understand how the pieces fit together before we make any changes.
+
+As in previous examples, the Lambda code lives in the `application-infrastructure/src` directory.
 
 ### Configuration
+
+The `config` directory within Lambda source (`src`) contains files, settings, and configurations that do not change during the execution of the Lambda function. It is loaded and initialized outside of the Lambda handler and therefore remains consistent for each deployment.
+
+In the main function `index.js`, the configuration is initialized asynchronously and the handler must ensure that initialization has completed before moving on to code that utilizes it. However, we don't want to hold up any process that doesn't have to wait, so we will perform the `await` within the handler just before we need it.
+
+```js
+/* src/index.js */
+/* Code is Simplified - Lines irrelevant to configuration topic removed */
+
+const { Config } = require("./config");
+
+/* initialize the Config */
+Config.init(); // we will await completion in the handler
+
+exports.handler = async (event, context) => {
+
+	let response = null;
+
+	try {
+
+		// ... You can do things for the response that don't need the config here ...
+
+		/* wait for Config.promise and THEN Config.prime to be settled as we need it before continuing. */
+		await Config.promise(); // makes sure general config init is complete
+		await Config.prime(); // makes sure all prime tasks (tasks that need to be completed AFTER init but BEFORE handler) are completed
+
+		/* Process the request and wait for result */
+		response = await process(event, context);
+	} catch (error) {
+		// ...
+	} finally {
+		/* Send the result back to API Gateway */
+		return response;
+	}
+}
+```
+
+> Note: Since the `Config.init()` is performed OUTSIDE the `handler()`, it ONLY executes during the COLDSTART. Because of this, the `Config.promise()` and `Config.prime()` will already have been resolved on subsequent executions and will continue without pausing.
+
+The `config` directory contains all the settings and methods that get the Lambda function ready. The provided configuration is set-up for many common use-cases which we will experiment with in this tutorial. However, you can organize it for your own needs. 
+
+Let's take a look at that directory. You'll notice that it contains a main `index.js` file, and mix of `*.json` and `*.js` files.
+
+#### settings.json
+
+This file contains the main settings for the application which are static and do not change based upon other settings or environment variables.
+
+You will find that the usefulness of this file will vary as your application evolves and you begin to utilize environment variables and incorporate logic in your settings.
+
+This is true for any `*.json` file. If you require more dynamic settings, you may want to rename this to a `*.js` file instead. We will explore this later in the tutorial.
+
+#### validations.js
+
+This file contains the validation rules for incoming requests. These rules are applied automatically by the `Request` object which we will look at later. The exported property names much match the request parameters.
+
+```js
+// validations.js
+const { tools: {DebugAndLog} } = require("@63klabs/cache-data");
+
+const referrers = [
+	"example.com"
+];
+
+/* Validation Utility functions */
+
+const isString = (value) => {
+	return typeof value === "string";
+};
+
+const isStringOfNumbers = (value) => {
+	// using regex, check if all the characters are digits
+	return /^\d+$/.test(value);
+};
+
+const categoryId = (category) => {
+	if (!category) return false;
+	if (!isString(category)) return false;
+	if (category.length === 0) return false;
+	return ['GRE', 'BRN', 'SEK'].includes(category);
+};
+
+const productId = (productId) => {
+	if (!productId) return false;
+	if (!isStringOfNumbers(productId)) return false;
+	if (productId.length === 0) return false;
+	return true;
+};
+
+const sizeFilter = (size) => {
+	if (!size) return false;
+	if (!isStringOfNumbers(size)) return false;
+	if (size < 1 || size > 10) return false;
+	return true;
+};
+
+/**
+ * The exported alias must match the parameter name in the request coming in.
+ * The Request object will automatically validate the parameter based on the function name and exclude any request parameter that does not have a check.
+ * You can define and re-use simple checks such as isString for multiple parameters if that is all you need.
+ */
+module.exports = {
+	referrers,
+	parameters: {
+		pathParameters: {
+			categoryId: categoryId // /products/{categoryId}
+			productId: productId // /products/{categoryId}/{productId}
+		},
+		queryParameters: {
+			size: sizeFilter, // products?size=10
+			cat: categoryId, // products?cat=BRN
+			id: productId
+		},
+		// headerParameters: {},
+		// cookieParameters: {},
+		// bodyParameters: {},	
+	}
+};
+```
+
+#### config/index.js
 
 TODO
 
