@@ -258,11 +258,54 @@ try {
 
 ## 2. Identify components of the application structure
 
-TODO
+### Model-View-Controller Pattern
+
+```mermaid
+graph TD;
+	reqres[Request/Response] -- 1 request --> Router;
+	Router -- 2 props --> Controller;
+	Controller -- 3 query --> Service;
+	Service -- 4 query --> model[Model/DAO];
+	model -- 5 request --> API[(API Endpoint)];
+	API -- 6 response --> model;
+	model -- 7 data --> Service;
+	Service -- 8 data --> Controller;
+	Controller -- 9 data --> View;
+	View -- 10 data --> Controller;
+	Controller -- 11 data --> Router;
+	Router -- 12 response --> reqres;
+```
+
+MVC allows for the separating of presentation (View) from business logic and data (Model/Controller). 
+
+API vs. Traditional Web App: When building a RESTful API, the "View" is typically data serialized into formats like JSON, rather than an HTML page.
+
+To supplement MVC, a Repository Pattern and Service Layer is included.
+
+### Repository Pattern
+
+- **Description:** The Repository Pattern is implemented using Data Access Objects which creates an abstraction layer between business logic and data access (like a database or another API call, retries, pagination, etc).
+- **Benefits:** Decouples your business logic from the specific data source, making it easier to swap data sources or integrate with different backend services without affecting the core logic. Improves testability by allowing you to easily mock the data access layer.
+- **Example:** A UserRepository might abstract how user data is retrieved, whether it's from a database or a separate user service API.
+
+### Service Layer
+
+- **Description:** A layer between the API (Controller) and the data access layer (Repository) that encapsulates business logic.
+- **Benefits:** Centralizes complex business rules, keeps controllers thin and focused on request handling, and improves testability by isolating business logic.
+- **Example:** An OrderService would contain the logic for creating an order, including calculations, stock checks, and payment processing.
+
 
 ### Routes
 
-TODO
+`src/routes/`
+
+The `routes` directory receives the context and event information from the handler and then determines where to route the request. 
+
+To do this, a `Request` object is created from the event and context. The `Request` object is a class that can be defined in Utils. Custom code can take information from the event and context and apply general business logic that can be used to inform the router of what route to send the request through. The business logic handled by the Request object should be very general and intended to be utilized by the Router and most downstream methods. Resource intensive tasks should be handled by the controller which can handle multiple tasks asynchronously.
+
+Using a `switch` or `if-if-else-else` block, the Router sends the Request object to the proper view that will next process the request.
+
+There should only be ONE route and subsequently, ONE view. Much like a web page can have multiple content pieces (some shared among other web pages) there is still only ONE web page. 
 
 ### Requests
 
@@ -270,17 +313,118 @@ TODO
 
 ### Controllers
 
-TODO
+`src/controllers/`
+
+Controllers contain the business logic that takes the request, analyzes its properties such as query string and path parameters, determines what services should be called, and after the services return data, sends the data to a view for final formatting.
+
+Controllers should not worry about specific data models, the endpoint they access, or even caching. This allows them to be modular.
+
+If a controller needs to dispatch queries to multiple services, they should be done async (in parallel).
+
+```js
+const tasks = [];
+tasks.push(Service.userInfo.get(props));
+tasks.push(Service.userOrders.get(props));
+const [userInfo, orders] = await Promise.all(tasks);
+```
+
+If a controller requires data from one service before it can make a query of another service, it may do so sequentially.
+
+```js
+// TODO
+```
 
 ### Services
 
-TODO
+`src/services/`
 
-### Views and Utilities
+Caching is implemented at the service level.
 
-TODO
+Services should not worry about the endpoint they access, retries, pagination, etc. This allows them to be modular. If a database is changed out for a Restful API, or a database schema or authentication, changes, that should be captured in the Model or Data Access Object.
+
+### Views
+
+`src/views/`
+
+A view assembles and formats the end result (response code, headers, and body) that will be returned as a response to API Gateway (and client). This may be the final HTML document, JSON, XML/RSS feed, or file to place in an S3 bucket. 
+
+Views may call a controller directly, call in additional views, or a combination. 
+
+> Views should not include business logic, they should only include document template information for the response. Break a large view into smaller content pieces as a view may contain other content pieces that are shared among other views.
+
+Views may also include information beyond the body of the document such as response headers.
 
 ### Models
+
+`src/models/`
+
+The `models` directory contain Data Access Objects (DAO) and fetch methods. "Data Access Objects" understand the connections (and authentication) that need to be made and any data transformations that need to take place before returning data back to the service.
+
+Models should be developed using OOP (Object Oriented Programming) and well thought out so that they can be easily replaced. If a database connection and schema is swapped out for a Restful API endpoint, the downstream controller should not know the difference.
+
+Models use Data Access Objects to perform the authentication, basic parameters, connections, retries, and pagination. Models can then transform the data returned into a usable format (parse XML, change an array to an keyed object, group a set of one dimensional database records into an object utilizing arrays, etc) for the service to return to the controller. (Similar to views, but for data).
+
+Business logic, record by record transformation, and filtering should be reserved for the controller and view.
+
+You may create a super class for a vendor to capture like attributes, and then multiple child classes (one for each specific endpoint) to extend the super class. You may even have a generic child class if the various endpoints don't change.
+
+Why you might do this:
+
+- Easier authentication across all endpoints by placing in super class. Less repetitive data in `Connection`.
+- Easier to implement shared header or query string parameters (such as `format=json` if your endpoint requires such things)
+- Easier to provide limits, pagination, and unique error code handling for the endpoints.
+
+#### Static Data Directory
+
+`src/models/static-data/`
+
+The `models/static-data` directory contains supplemental static data that can be used for mapping and enhancing data returned by your application.
+
+Any data that isn't dynamic can be stored and used as labels, mappings, enhancements, valid parameter lists, etc.
+
+For example, suppose data from an outside system returns coded location information. For example, `US-CHI` for Chicago. You can store a JSON object with the code mappings so that your API web service can return a fully formatted, human readable location.
+
+Another example is validating passed parameters. Suppose your application accepts a query string parameter for color coded data where there is a limited number of options and they stay relatively static. `['RED', 'BLUE', 'YELLOW', 'ORANGE', 'GREEN']` You store these as a separate file in static data and then import into your validation script to validate that the value passed from the client matches one of the accepted values.
+
+#### Sample Data Directory
+
+`src/models/sample-data`
+
+The `models/sample-data` directory contains sample data that represents data is returned from Endpoints and Data Access Objects. They can be used during testing and early prototyping. 
+
+For example, you could create a unit test that passes the data from a sample data file into a view and compares it to the expected output contained within a test-data file (See [Test Data](#test-data-directory)).
+
+#### Test Data Directory
+
+`src/models/test-data`
+
+The `models/test-data` directory contains test data that represents data used for testing.
+
+For example, you could create a unit test that passes the data from a sample data file into a view and compares it to the expected output contained within a test-data file. (See [Sample Data](#sample-data-directory)).
+
+### Utilities
+
+`src/utils/`
+
+Shared methods that serve as tools, helpers, and utilities can be stored in the `utils` directory. These methods should be independent of Configurations, controllers, views, and models here. As your organization develops methods that are constantly re-used, they should probably be deployed as a Lambda Layer.
+
+### Tests directory
+
+`src/tests/`
+
+The `tests` directory can be used to store your tests written using Mocha or other testing framework.
+
+You can utilize sample and test data from the models directory for mocking and comparing results.
+
+For example, you can read in a sample data file (written in JSON or JavaScript) and pass it to a method. You can then compare the output using a test data file. (See [Sample Data](#sample-data-directory) and [Test Data](#test-data-directory))
+
+## 3. Cache Data Objects
+
+### Request
+
+TODO
+
+### Cache
 
 TODO
 
@@ -288,7 +432,7 @@ TODO
 
 TODO
 
-## 3. Dive deeper into controllers, services, models, and views
+## 4. Hands On
 
 TODO
 
