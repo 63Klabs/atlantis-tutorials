@@ -128,15 +128,87 @@ module.exports = {
 };
 ```
 
+#### connections.js
+
+The `connections.js` file is similar to `settings.json` in that it exports settings, in this case an array of connections.
+
+These connections can be to databases, APIs, or other services that your application needs to connect to.
+
+Unlike a `.json` file, the `.js` file can be dynamic based on deployment environment (PROD vs TEST) or other deployment settings. Calculations and methods can be used to set values that may change from deployment to deployment (not execution to execution though!).
+
+Here is an example of a connection array:
+
+```js
+const connections = [
+	{
+		name: "games",
+		host: "api.chadkluck.net",
+		path: "/games",
+		cache: [
+			{
+				profile: "default",
+				overrideOriginHeaderExpiration: true,
+				defaultExpirationInSeconds: (DebugAndLog.isProduction() ? (24 * 60 * 60) : (5 * 60)),// , // 5 minutes for non-prod
+				expirationIsOnInterval: true,
+				headersToRetain: "",
+				hostId: "chadkluck", // log entry label - only used for logging
+				pathId: "games", // log entry label - only used for logging
+				encrypt: true, // encrypt the data in the cache
+			}
+		]        
+	}
+]
+```
+
+The `name` property is arbitrary and will be used within the code to return the connection details when asked. The host and path of course correspond to the endpoint details (`https` is assumed).
+
+The `cache` property is optional, but provides details on how the cache should perform. The `profile`, much like the `name` is so that your code can call it.
+
+The `defaultExpirationInSeconds` property is how long you want the cache to live. In this example we set a longer cache in production compared to test environments. You don't have to write out the seconds as a mathematical formula, but it can be helpful in quickly determining what the seconds represent in case you don't have your multiples of 60 memorized.
+
+The `expirationIsOnInterval` when set to `true` lets the cache know that it is good for UP TO 24 hours in this case, but MUST expire at midnight. Similarly a cache set for one hour would expire on the hour. And a cache set for 30 minutes would expire on the hour and 30 minutes after the hour. When set to `false` it will be a rolling expiration. For example a cache item set at 9:07 with a 60 minute expiration will expire at 10:07. This can be useful for ensuring set intervals but must be balanced with an onset of cache invalidations all at the same time, thereby increasing the number of requests sent to the endpoint at certain times of the day.
+
+The `hostId` and `pathId` are just for logging purposes.
+
+Finally `encrypt` is set to `true` in this example and for all practical purposes, should always be true except in early stages of development. This provides an extra layer of encryption on the data stored in the cache (which is in DynamoDB or S3). Instead of just relying on encryption at rest, it also applies an application layer of encryption preventing anyone with access to read records or objects in DynamoDB and S3 from accessing the data. It also ensures that data cannot be accidentally (or intentionally) used by another application without the key.
+
+We'll see how to send a request to an endpoint through the cache later.
+
 #### config/index.js
 
-TODO
+The `config/index.js` script pulls everything together into a `Config` object that must be initialized before the application can handle requests. (We saw this when walking through the initial code with the `awaits`).
 
-### Caching
+At its simplest form, the `init()` method initializes other objects such as `ClientRequest`, `Response`, and `Cache` by passing the objects exported by validations, settings, and connections.
 
-TODO
+You can change the structure around (put the connections array into settings, change settings to `.js` etc) but the main point is to initialize `ClientRequest`, `Response`, `Cache` and any other object or class that may require initialization.
+
+You can also import the `Config` class into other scripts to use the configuration information.
+
+#### Secret Store and SSM Parameter Store
+
+The `config/index.js` file also contains methods to retrieve secrets from AWS Secrets Manager and parameters from AWS Systems Manager Parameter Store.
+
+For this it utilizes the AWS Parameters and Secrets Lambda Extension which you will have seen included as a layer in the application's CloudFormation template.
+
+This extension was chosen as it uses a retrieval code base managed by AWS and can be set to refresh at regular intervals if the parameters are rotated.
+
+You can find more about the extension in the AWS User Guide: ["Using Parameter Store parameters in AWS Lambda functions"](https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html)
+
+### Lambda Environment Variables vs Settings File
+
+The `settings.json` file is a great place to put static settings that do not change between deployments or environments.
+
+However, there are times when you want to have settings that change based upon the deployment environment (TEST vs PROD) or other deployment specific information.
+
+For example, you may want to have a setting that turns on verbose logging in non-production environments, but turns it off in production.
+
+You can accomplish this by using Lambda Environment Variables.
+
+In the `settings.json` file, you can reference environment variables using the `process.env` object, but you will need to change it to a `.js` file and provide an export as demonstrated in `connections.js`.
 
 ### Debug logs and Timer
+
+By now you will have run across `DebugAndLog.error()` and `Timer()` as we examined the handler and configuration files.
 
 TODO
 
