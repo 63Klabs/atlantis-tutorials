@@ -208,9 +208,53 @@ In the `settings.json` file, you can reference environment variables using the `
 
 ### Debug logs and Timer
 
-By now you will have run across `DebugAndLog.error()` and `Timer()` as we examined the handler and configuration files.
+By now you will have run across `DebugAndLog` and `Timer` as we examined the handler and configuration files. These two Classes can be used to assist in debugging your application by sending data back to CloudWatch logs.
 
-TODO
+For more information see the [documentation for 63Klabs Cache Data tools](https://github.com/63Klabs/cache-data/blob/main/docs/features/tools/).
+
+#### Debug
+
+The `DebugAndLog` class provides methods to log debug, info, warn, and error messages to CloudWatch Logs.
+
+You can control the level of logging by setting the `LOG_LEVEL` environment variable in your Lambda function. The levels are:
+
+- ERROR - `DebugAndLog.error()`
+- WARN - `DebugAndLog.warn()`
+- INFO - `DebugAndLog.info()`
+- MSG - `DebugAndLog.msg()`
+- DIAG - `DebugAndLog.diag()`
+- DEBUG - `DebugAndLog.debug()`
+
+The `DebugAndLog` class WILL NOT output any logging sent to `MSG`, `DIAG`, or `DEBUG` in production.
+
+For example, to log a debug message:
+
+```js
+DebugAndLog.debug("This is a debug message");
+```
+
+#### Timer
+
+The `Timer` class can be used to measure the time taken for a block of code to execute. It is useful for performance monitoring and optimization.
+
+```js
+const timer = new Timer("MyFunction", true); // true means start now
+// code to be timed
+timer.stop();
+```
+
+You will usually want to place the timer creation outside of a `try/catch` block and stop the timer in a `finally` block:
+
+```js
+const timer = new Timer("MyFunction", true);
+try {
+	// code to be timed
+} catch (error) {
+	// handle error
+} finally {
+	timer.stop();
+}
+```
 
 ## 2. Identify components of the application structure
 
