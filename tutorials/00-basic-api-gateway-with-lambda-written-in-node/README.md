@@ -53,7 +53,7 @@ Go to GitHub or the AWS CodeCommit Console and explore the repository. The `main
 
 ### CodeCommit
 
-If using CodeCommit, your repository was also given AWS resource tags to assist in account management. Note that resource tags are not the same as git tags. Resource tags are a feature of AWS as a type of meta data used to organize, manage, and report. Git tags are snapshots of repository contents and are a feature of all git repositories.
+If using CodeCommit, your repository was also given AWS resource tags to assist in account management. Note that _resource tags_ are not the same as _git tags_. **Resource tags** are a feature of AWS used to organize and manage resources. **Git tags** are snapshots (releases, checkpoints, or versions) of repository contents and are a feature of all git repositories.
 
 To view your resource tags go to your repository settings and select the "Repository Tags" tab.
 

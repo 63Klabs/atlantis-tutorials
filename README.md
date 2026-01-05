@@ -123,24 +123,18 @@ The repository will be created with 3 branches:
 
 Clone the repository to your machine and check-out the `dev` branch to see your code. (Note: The `main` and `test` branches will be empty until you merge and push your updated code!)
 
-> Note: AWS CodeCommit is no longer available to new customers. Existing customers of AWS CodeCommit can continue to use the service as normal. [Learn more](https://aws.amazon.com/blogs/devops/how-to-migrate-your-aws-codecommit-repository-to-another-git-provider/)
-
 ## Tutorials
 
 To ensure everything is set-up correctly, start with:
 
-- SAM Config Repo Quick Start Documentation for Developers (if you haven't already)
-- [Serverless 8 Ball Example](https://github.com/chadkluck/serverless-sam-8ball-example) (if you haven't already)
-- [Application Starter: 00 Basic API Gateway with Lambda Function Written in Node.js](./tutorials/00-basic-api-gateway-with-lambda-written-in-node/README.md)
+- [Prerequisite #0: SAM Config Repo Quick Start Documentation for Developers](https://github.com/63Klabs/atlantis-cfn-configuration-repo-for-serverless-deployments) (if you haven't already)
+- [Prerequisite #1: Serverless 8 Ball Example (chadkluck/serverless-sam-8ball-example)](https://github.com/chadkluck/serverless-sam-8ball-example) (if you haven't already)
+- [Tutorial #0: Basic API Gateway with Lambda Function Written in Node.js](./tutorials/00-basic-api-gateway-with-lambda-written-in-node/README.md)
 
 Then, move on to:
 
 1. [Tutorial #1: Basic API Gateway with Lambda written in Python](./tutorials/01-basic-api-gateway-with-lambda-written-in-python/README.md)
 2. [Tutorial #2: Advanced API Gateway and Lambda using Cache-Data (Node)](./tutorials/02-advanced-api-gateway-lambda-cache-data-node/README.md)
-3. Coming Soon: Storage Stack using S3 and Origin Access Control for Static Website
-   - Application Starter: 03 Static Website Deployment with CodeBuild and S3
-   - Network Stack using CloudFront and Route53
-4. Coming Soon: Application Starter: 04 Event Triggered Lambda
-5. Coming Soon: Application Starter: 05 Event Triggered Step Function
-6. [Tutorial #6: Video Transcoding using Elemental MediaConvert](https://github.com/chadkluck/serverless-video-converter)
-7. Coming Soon: Application Starter: 07 SQS and Lambda
+3. Coming Soon: Static Website Deployment with CodeBuild, S3, CloudFront, and Route53
+4. Coming Soon: Cache Invalidation using Event Triggered Lambda, SQS, Scheduled Lambda, and AWS SDK in Python
+6. [Tutorial #5: Video Transcoding using Elemental MediaConvert (chadkluck/serverless-video-converter)](https://github.com/chadkluck/serverless-video-converter)
