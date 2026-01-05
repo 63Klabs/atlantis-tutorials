@@ -75,7 +75,7 @@ cd advanced-8-ball
 Check out the `dev` branch.
 
 ```bash
-git checkout dev
+git switch dev
 ```
 
 Inspect the `template.yml` file. You'll notice various sections including:
@@ -108,7 +108,7 @@ So, as you can see with the alarms and logs, there is some level of observabilit
 We want to deploy the code as-is, so merge `dev` into `test`:
 
 ```bash
-git checkout test
+git switch test
 git merge dev
 git push
 ```
@@ -199,7 +199,7 @@ Right now the 8 Ball only makes a very vague prediction. Let's move the logic to
 In your `advanced-8-ball` repository, check out the `dev` branch:
 
 ```bash
-git checkout dev
+git switch dev
 ```
 
 Now, add a new script file called `predictions.js` in the main `src` directory:
@@ -440,7 +440,7 @@ Commit and push your changes to `dev` and then merge into `test`:
 git add --all
 git commit -m "added dice and cards"
 git push
-git checkout test
+git switch test
 git merge dev
 git push
 ```
@@ -450,7 +450,7 @@ Verify the changes once deployment is complete.
 If everything is satisfactory, then you are ready to merge to production!
 
 ```bash
-git checkout main
+git switch main
 git merge test
 git push
 ```

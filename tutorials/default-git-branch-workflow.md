@@ -57,10 +57,12 @@ We will be using this branch workflow strategy for the tutorials as diving into 
 
 ## Example
 
-Checkout the `dev` branch.
+> We will use the more modern `switch` command rather than `checkout` for changing between branches. If you prefer `checkout` you may use that instead of `switch`. If you are new to git, then use `switch`.
+
+Switch to the `dev` branch.
 
 ```bash
-git checkout dev
+git switch dev
 # do a git pull if there were, or could be, changes since you last worked
 git pull
 ```
@@ -76,7 +78,7 @@ git push
 After you are ready to deploy to test, merge and push `dev` branch to `test`.
 
 ```bash
-git checkout test
+git switch test
 git merge dev
 git push
 ```
@@ -86,13 +88,13 @@ When `test` is connected to a pipeline, the pipeline will go through the deploy 
 If changes need to be made, go back and check-out the `dev` branch and make your changes. When ready, merge changes into `test`.
 
 ```bash
-git checkout dev
+git switch dev
 # make your code changes
 git add --all
 git commit -m "short but descriptive message"
 git push
 # when ready for another deploy to test...
-git checkout test
+git switch test
 git merge dev
 git push
 # go back to dev if more changes are needed
@@ -101,7 +103,7 @@ git push
 Once the test instance receives approval to move to production, merge and push to the production `main` branch. We won't worry about pull requests for the tutorials.
 
 ```bash
-git checkout main
+git switch main
 git merge test
 git push
 ```
@@ -109,15 +111,15 @@ git push
 Go back to `dev` to begin your next round of code changes.
 
 ```bash
-git checkout dev
+git switch dev
 ```
 
 At the start of the day (and perhaps throughout if multiple people are working on the repository) do a git pull on `dev` and `main` and merge `main` into `dev`.
 
 ```bash
-git checkout main 
+git switch main 
 git pull # get any changes from main
-git checkout dev
+git switch dev
 git pull # make sure dev is up to date
 git merge main # bring any changes from main down into dev
 git push
