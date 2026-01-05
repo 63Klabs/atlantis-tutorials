@@ -119,7 +119,7 @@ The repository will be created with 3 branches:
 - test (empty)
 - dev (your seeded code will be here)
 
-> The tutorials will use the `dev-test-main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](./tutorials/default-git-branch-workflow.md)
+> The tutorials will use the `dev -> test -> main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](./tutorials/default-git-branch-workflow.md)
 
 Clone the repository to your machine and check-out the `dev` branch to see your code. (Note: The `main` and `test` branches will be empty until you merge and push your updated code!)
 
