@@ -2187,7 +2187,7 @@ exports.fetch = async (query) => {
 			const cacheObj = await CacheableDataAccess.getData(
 				cacheCfg,        // Cache configuration
 //				WeatherDao.get,  // DAO function we'll create later
-				endpoint.getDataDirectFromURI, // Using endpoint directly
+				endpoint.get,    // Using endpoint directly
 				conn,           // Connection configuration
 				daoQuery        // Query parameters
 			);
