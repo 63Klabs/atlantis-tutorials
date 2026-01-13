@@ -556,13 +556,9 @@ conn.options.timeout ??= query?.calcMsToDeadline(query?.deadline) ?? 8000;
 
 **Monitoring and Debugging:**
 
-1. **Comprehensive Logging**: Log key operations with context:
-```javascript
-DebugAndLog.debug(`${logIdentifier}: Cache ${cacheObj.isFromCache() ? 'HIT' : 'MISS'}`, {
-	organizationCode: query?.organizationCode,
-	cacheAge: cacheObj.getAge(),
-	statusCode: cacheObj.getStatusCode()
-});
+1. **Comprehensive Logging**: Logs key operations with context:
+```text
+[CACHE] ae17b4f2daf6d6ea31d60ab1d36da60b236451bf77d5d125558057a6a8f7cebe | example/person | cache | 180
 ```
 
 2. **Performance Tracking**: Use timers for all major operations:
@@ -2157,7 +2153,8 @@ const {
 	tools: {
 		DebugAndLog,
 		Timer
-	}
+	},
+	endpoint
 } = require("@63klabs/cache-data");
 
 const { Config } = require("../config");
@@ -2171,7 +2168,7 @@ const logIdentifier = "Weather Service GET";
  * @returns {object} results - Weather data
  */
 exports.fetch = async (query) => {
-	return new Promise(async (resolve, reject) => {
+	return new Promise(async (resolve) => {
 		let results = {};
 		const timer = new Timer(logIdentifier, true);
 		DebugAndLog.debug(`${logIdentifier}: Query Received`, query);
@@ -2180,11 +2177,6 @@ exports.fetch = async (query) => {
 			// Get weather connection configuration
 			let connection = Config.getConnection("weather");
 			let conn = connection.toObject();
-			
-			// Configure timeout
-			conn.options ??= {};
-			conn.options.timeout ??= query?.calcMsToDeadline(query?.deadline) ?? 
-				Config.getSettings()?.externalRequestDefaultTimeoutInMs ?? 8000;
 
 			// Get cache profile for current weather
 			let cacheCfg = connection.getCacheProfile("current");
@@ -2194,7 +2186,8 @@ exports.fetch = async (query) => {
 			// Make cached request through DAO
 			const cacheObj = await CacheableDataAccess.getData(
 				cacheCfg,        // Cache configuration
-				WeatherDao.get,  // DAO function
+//				WeatherDao.get,  // DAO function we'll create later
+				endpoint.getDataDirectFromURI, // Using endpoint directly
 				conn,           // Connection configuration
 				daoQuery        // Query parameters
 			);
@@ -2202,26 +2195,19 @@ exports.fetch = async (query) => {
 			// Extract response body
 			results = cacheObj.getBody(true);
 
-			// Log cache performance
-			DebugAndLog.debug(`${logIdentifier}: Cache ${cacheObj.isFromCache() ? 'HIT' : 'MISS'} - Weather data for ${daoQuery.city || 'coordinates'}`, {
-				fromCache: cacheObj.isFromCache(),
-				statusCode: cacheObj.getStatusCode(),
-				cacheAge: cacheObj.isFromCache() ? cacheObj.getAge() : 0
-			});
-
 		} catch (error) {
 			DebugAndLog.error(`${logIdentifier}: Error: ${error.message}`, error.stack);
 			results = { error: "Weather service unavailable" };
 		} finally {
 			timer.stop();
+			resolve(results);
 		}
-
-		resolve(results);
+		
 	});
 };
 ```
 
-#### Step 6: Create the Weather Controller
+#### Step 4: Create the Weather Controller
 
 Create a new file `controllers/weather.controller.js`:
 
@@ -2281,7 +2267,7 @@ exports.get = async (props) => {
 };
 ```
 
-#### Step 7: Create the Weather View
+#### Step 5: Create the Weather View
 
 Create a new file `views/weather.view.js`:
 
@@ -2398,7 +2384,7 @@ exports.view = (resultsFromSvc) => {
 };
 ```
 
-#### Step 8: Update Index Files
+#### Step 6: Update Index Files
 
 Update `controllers/index.js`:
 ```javascript
@@ -2452,7 +2438,7 @@ module.exports = {
 };
 ```
 
-#### Step 9: Add Routing
+#### Step 7: Add Routing
 
 Update `routes/index.js` to include the weather endpoint:
 
@@ -2464,7 +2450,9 @@ case "api/weather":
 ```
 
 
-#### Step 3: Create the Weather Base DAO
+#### Step 8: Create the Weather Base DAO
+
+> TODO: Right now we implemented using the generic endpiont, but if we want to do some basic transformations for EVERY request, such as add headers etc, we can do that using our own custom DAO (Data Access Object)
 
 Create a new file `models/ApiWeather.dao.js`:
 
