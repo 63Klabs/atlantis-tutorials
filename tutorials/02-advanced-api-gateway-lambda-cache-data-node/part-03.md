@@ -1542,6 +1542,7 @@ class ApiExampleDao {
 ```
 
 **Specific DAO (`models/Example.dao.js`):**
+
 ```javascript
 const { ApiExampleDao } = require("./ApiExample.dao");
 
@@ -2097,9 +2098,33 @@ Now let's implement a more sophisticated service that uses API key authenticatio
 
 The Weather service will fetch current weather data using an API key and cache the results to reduce API calls and improve performance.
 
-#### Step 1: Add Weather Connection Configuration
+#### Step 1: Add SSM Parameter for Weather Key
 
-First, update `config/connections.js` to add the weather API connection:
+The weather API requires an API key. 
+
+You can sign up for a FREE key without entering payment information by visiting:
+
+- [OpenWeather Pricing](https://home.openweathermap.org/users/sign_up) and finding the Free Access option and Get API Key
+  - [Full pricing Chart](https://openweathermap.org/full-price#current) - Get API Key
+  - [Create New Account (Free)](https://home.openweathermap.org/users/sign_up)
+
+> Note: Links may change, you may have to dig around for the free option.
+
+Alternatively, you can check out [Weather API](https://www.weatherapi.com/) but may need to modify some of the examples to be compatible with their API.
+
+Once you have an API key, add this to your buildspec.yml under the current call to `generate-put-ssm.py` for `CacheData_SecureDataKey`:
+
+```yaml
+      - python3 ./build-scripts/generate-put-ssm.py ${PARAM_STORE_HIERARCHY}WeatherApiKey
+```
+
+This will create a new SSM Parameter named `WeatherApiKey` with the initial value of `BLANK` (since we didn't pass it a value).
+
+Best practice is to assign the value OUTSIDE of CloudFormation templates and build scripts. We'll perform a CLI call to set the value after we deploy.
+
+#### Step 2: Add Weather Connection Configuration
+
+Next, update `config/connections.js` to add the weather API connection along with the API key which we will fetch from SSM Parameter store:
 
 ```javascript
 const { tools: {DebugAndLog} } = require("@63klabs/cache-data");
@@ -2109,23 +2134,17 @@ const connections = [
 		name: "games",
 		host: "api.chadkluck.net",
 		path: "/games",
-		cache: [
-			{
-				profile: "default",
-				overrideOriginHeaderExpiration: true,
-				defaultExpirationInSeconds: (DebugAndLog.isProduction() ? (24 * 60 * 60) : (5 * 60)),
-				expirationIsOnInterval: true,
-				headersToRetain: "",
-				hostId: "chadkluck",
-				pathId: "games",
-				encrypt: true,
-			}
-		]        
+		// ... existing games configuration ...     
 	},
 	{
 		name: "weather",
 		host: "api.openweathermap.org",
 		path: "/data/2.5/weather",
+		parameters: {
+			q: "Chicago",
+			units: "imperial",
+			appid: new CachedSSMParameter(process.env.PARAM_STORE_PATH+'WeatherApi', {refreshAfter: 43200}), // 12 hours
+		},
 		cache: [
 			{
 				profile: "current",
@@ -2144,241 +2163,9 @@ const connections = [
 module.exports = connections;
 ```
 
-#### Step 2: Add Environment Variable for API Key
+#### Step 3: Create the Weather Service
 
-The weather API requires an API key. Add this to your CloudFormation template in the Lambda function environment variables:
-
-```yaml
-# In template.yml, add to the AppFunction Environment Variables:
-Environment:
-  Variables:
-    # ... existing variables ...
-    OPENWEATHER_API_KEY: !Ref OpenWeatherApiKey
-
-# Add parameter for the API key:
-Parameters:
-  # ... existing parameters ...
-  OpenWeatherApiKey:
-    Type: String
-    Description: API key for OpenWeatherMap service
-    NoEcho: true
-```
-
-#### Step 3: Create the Weather Base DAO
-
-Create a new file `models/ApiWeather.dao.js`:
-
-```javascript
-const { tools: {DebugAndLog, APIRequest} } = require("@63klabs/cache-data");
-
-class ApiWeatherDao {
-	constructor(connection) {
-		this.request = {
-			method: this._setRequestSetting(connection, "method", "GET"),
-			uri: this._setRequestSetting(connection, "uri", ""),
-			protocol: this._setRequestSetting(connection, "protocol", "https"),
-			host: this._setRequestSetting(connection, "host", "api.openweathermap.org"),
-			path: this._setRequestSetting(connection, "path", "/data/2.5/weather"),
-			body: this._setRequestSetting(connection, "body", null),
-			note: this._setRequestSetting(connection, "note", "Get weather data from OpenWeatherMap"),
-			parameters: this._setParameters(connection),
-			headers: this._setHeaders(connection),
-			options: this._setOptions(connection),
-			cache: this._setCache(connection)
-		};
-	}
-
-	_setRequestSetting(connection, key, defaultValue) {
-		if (!(key in connection)) {
-			connection[key] = defaultValue;
-		}
-		return connection[key];
-	}
-
-	/**
-	 * Set standard parameters for all weather API requests
-	 * @param {object} connection - Connection configuration
-	 * @returns {object} parameters
-	 */
-	_setParameters(connection) {
-		if (!("parameters" in connection)) {
-			connection.parameters = {};
-		}
-
-		// Add API key from environment variable
-		connection.parameters.appid = process.env.OPENWEATHER_API_KEY;
-		
-		// Set default units to metric
-		connection.parameters.units = "metric";
-
-		return connection.parameters;
-	}
-
-	/**
-	 * Set standard headers for all weather API requests
-	 * @param {object} connection - Connection configuration
-	 * @returns {object} headers
-	 */
-	_setHeaders(connection) {
-		if (!("headers" in connection)) {
-			connection.headers = {};
-		}
-
-		// Set standard headers
-		connection.headers['accept'] = "application/json";
-		connection.headers['user-agent'] = "atlantis-starter-02/1.0";
-
-		return connection.headers;
-	}
-
-	_setOptions(connection) {
-		if (!("options" in connection)) {
-			connection.options = {};
-		}
-		return connection.options;
-	}
-
-	_setCache(connection) {
-		if (!("cache" in connection)) {
-			connection.cache = null;
-		}
-		return connection.cache;
-	}
-
-	/**
-	 * Make the API request and parse JSON response
-	 * @returns {object} response
-	 */
-	async get() {
-		let response = null;
-		try {
-			response = await this._call();
-
-			// Parse JSON response
-			if (response.body !== "" && response.body !== null) {
-				try {
-					response.body = JSON.parse(response.body);
-				} catch (parseError) {
-					DebugAndLog.error(`Weather API JSON Parse Error: ${parseError.message}`, parseError.stack);
-				}
-			}
-
-		} catch (error) {
-			DebugAndLog.error(`Error in call to Weather API: ${error.message}`, error.stack);
-		}
-
-		return response;
-	}
-
-	/**
-	 * Execute the HTTP request
-	 * @returns {object} response
-	 */
-	async _call() {
-		let response = null;
-		try {
-			const apiRequest = new APIRequest(this.request);
-			response = await apiRequest.send();
-		} catch (error) {
-			DebugAndLog.error(`Error in Weather API call: ${error.message}`, error.stack);
-			response = APIRequest.responseFormat(false, 500, "Weather API request failed");
-		}
-		return response;
-	}
-}
-
-module.exports = {
-	ApiWeatherDao
-};
-```
-
-#### Step 4: Create the Weather Specific DAO
-
-Create a new file `models/Weather.dao.js`:
-
-```javascript
-const { tools: {DebugAndLog, APIRequest} } = require("@63klabs/cache-data");
-const { ApiWeatherDao } = require("./ApiWeather.dao");
-
-const get = async (connection, query) => {
-	return (new WeatherDao(connection, query).get());
-};
-
-class WeatherDao extends ApiWeatherDao {
-	constructor(connection, query) {
-		super(connection);
-		this.query = query;
-		this._setRequest(connection);
-	}
-
-	/**
-	 * Get current weather data
-	 * @returns {object} response
-	 */
-	async get() {
-		let response = null;
-		try {
-			response = await super.get();
-		} catch (error) {
-			DebugAndLog.error(`Error in WeatherDao get: ${error.message}`, error.stack);
-			response = APIRequest.responseFormat(false, 500, "Weather request failed");
-		}
-		return response;
-	}
-
-	/**
-	 * Execute the weather API call
-	 * @returns {object} response
-	 */
-	async _call() {
-		let response = null;
-		try {
-			response = await super._call();
-		} catch (error) {
-			DebugAndLog.error(`Error in WeatherDao call: ${error.message}`, error.stack);
-			response = APIRequest.responseFormat(false, 500, "Weather request failed");
-		}
-		return response;
-	}
-
-	/**
-	 * Configure the request with query parameters
-	 */
-	_setRequest() {
-		DebugAndLog.debug(`Weather Request: ${JSON.stringify(this.request)}`);
-
-		// Add location parameters based on query
-		if (this.query?.city) {
-			this.request.parameters.q = this.query.city;
-		} else if (this.query?.lat && this.query?.lon) {
-			this.request.parameters.lat = this.query.lat;
-			this.request.parameters.lon = this.query.lon;
-		} else {
-			// Default to a sample city if no location provided
-			this.request.parameters.q = "London,UK";
-		}
-
-		// Override units if specified
-		if (this.query?.units) {
-			this.request.parameters.units = this.query.units;
-		}
-
-		// Add language if specified
-		if (this.query?.lang) {
-			this.request.parameters.lang = this.query.lang;
-		}
-
-		this.request.note += ` (${this.request.parameters.q || 'coordinates'})`;
-		this.request.origNote = this.request.note;
-	}
-}
-
-module.exports = {
-	get
-};
-```
-
-#### Step 5: Create the Weather Service
+> TODO: change tutorial to make a direct connection first, then convert to DAO
 
 Create a new file `services/weather.service.js`:
 
@@ -2703,6 +2490,222 @@ Update `routes/index.js` to include the weather endpoint:
 case "api/weather":
 	RESP.setBody(await Controllers.WeatherCtrl.get(props));
 	break;
+```
+
+
+#### Step 3: Create the Weather Base DAO
+
+Create a new file `models/ApiWeather.dao.js`:
+
+```javascript
+const { tools: {DebugAndLog, APIRequest} } = require("@63klabs/cache-data");
+
+class ApiWeatherDao {
+	constructor(connection) {
+		this.request = {
+			method: this._setRequestSetting(connection, "method", "GET"),
+			uri: this._setRequestSetting(connection, "uri", ""),
+			protocol: this._setRequestSetting(connection, "protocol", "https"),
+			host: this._setRequestSetting(connection, "host", "api.openweathermap.org"),
+			path: this._setRequestSetting(connection, "path", "/data/2.5/weather"),
+			body: this._setRequestSetting(connection, "body", null),
+			note: this._setRequestSetting(connection, "note", "Get weather data from OpenWeatherMap"),
+			parameters: this._setParameters(connection),
+			headers: this._setHeaders(connection),
+			options: this._setOptions(connection),
+			cache: this._setCache(connection)
+		};
+	}
+
+	_setRequestSetting(connection, key, defaultValue) {
+		if (!(key in connection)) {
+			connection[key] = defaultValue;
+		}
+		return connection[key];
+	}
+
+	/**
+	 * Set standard parameters for all weather API requests
+	 * @param {object} connection - Connection configuration
+	 * @returns {object} parameters
+	 */
+	_setParameters(connection) {
+		if (!("parameters" in connection)) {
+			connection.parameters = {};
+		}
+
+		// Add API key from environment variable
+		connection.parameters.appid = process.env.OPENWEATHER_API_KEY;
+		
+		// Set default units to metric
+		connection.parameters.units = "metric";
+
+		return connection.parameters;
+	}
+
+	/**
+	 * Set standard headers for all weather API requests
+	 * @param {object} connection - Connection configuration
+	 * @returns {object} headers
+	 */
+	_setHeaders(connection) {
+		if (!("headers" in connection)) {
+			connection.headers = {};
+		}
+
+		// Set standard headers
+		connection.headers['accept'] = "application/json";
+		connection.headers['user-agent'] = "atlantis-starter-02/1.0";
+
+		return connection.headers;
+	}
+
+	_setOptions(connection) {
+		if (!("options" in connection)) {
+			connection.options = {};
+		}
+		return connection.options;
+	}
+
+	_setCache(connection) {
+		if (!("cache" in connection)) {
+			connection.cache = null;
+		}
+		return connection.cache;
+	}
+
+	/**
+	 * Make the API request and parse JSON response
+	 * @returns {object} response
+	 */
+	async get() {
+		let response = null;
+		try {
+			response = await this._call();
+
+			// Parse JSON response
+			if (response.body !== "" && response.body !== null) {
+				try {
+					response.body = JSON.parse(response.body);
+				} catch (parseError) {
+					DebugAndLog.error(`Weather API JSON Parse Error: ${parseError.message}`, parseError.stack);
+				}
+			}
+
+		} catch (error) {
+			DebugAndLog.error(`Error in call to Weather API: ${error.message}`, error.stack);
+		}
+
+		return response;
+	}
+
+	/**
+	 * Execute the HTTP request
+	 * @returns {object} response
+	 */
+	async _call() {
+		let response = null;
+		try {
+			const apiRequest = new APIRequest(this.request);
+			response = await apiRequest.send();
+		} catch (error) {
+			DebugAndLog.error(`Error in Weather API call: ${error.message}`, error.stack);
+			response = APIRequest.responseFormat(false, 500, "Weather API request failed");
+		}
+		return response;
+	}
+}
+
+module.exports = {
+	ApiWeatherDao
+};
+```
+
+
+#### Step 4: Create the Weather Specific DAO
+
+Create a new file `models/Weather.dao.js`:
+
+```javascript
+const { tools: {DebugAndLog, APIRequest} } = require("@63klabs/cache-data");
+const { ApiWeatherDao } = require("./ApiWeather.dao");
+
+const get = async (connection, query) => {
+	return (new WeatherDao(connection, query).get());
+};
+
+class WeatherDao extends ApiWeatherDao {
+	constructor(connection, query) {
+		super(connection);
+		this.query = query;
+		this._setRequest(connection);
+	}
+
+	/**
+	 * Get current weather data
+	 * @returns {object} response
+	 */
+	async get() {
+		let response = null;
+		try {
+			response = await super.get();
+		} catch (error) {
+			DebugAndLog.error(`Error in WeatherDao get: ${error.message}`, error.stack);
+			response = APIRequest.responseFormat(false, 500, "Weather request failed");
+		}
+		return response;
+	}
+
+	/**
+	 * Execute the weather API call
+	 * @returns {object} response
+	 */
+	async _call() {
+		let response = null;
+		try {
+			response = await super._call();
+		} catch (error) {
+			DebugAndLog.error(`Error in WeatherDao call: ${error.message}`, error.stack);
+			response = APIRequest.responseFormat(false, 500, "Weather request failed");
+		}
+		return response;
+	}
+
+	/**
+	 * Configure the request with query parameters
+	 */
+	_setRequest() {
+		DebugAndLog.debug(`Weather Request: ${JSON.stringify(this.request)}`);
+
+		// Add location parameters based on query
+		if (this.query?.city) {
+			this.request.parameters.q = this.query.city;
+		} else if (this.query?.lat && this.query?.lon) {
+			this.request.parameters.lat = this.query.lat;
+			this.request.parameters.lon = this.query.lon;
+		} else {
+			// Default to a sample city if no location provided
+			this.request.parameters.q = "London,UK";
+		}
+
+		// Override units if specified
+		if (this.query?.units) {
+			this.request.parameters.units = this.query.units;
+		}
+
+		// Add language if specified
+		if (this.query?.lang) {
+			this.request.parameters.lang = this.query.lang;
+		}
+
+		this.request.note += ` (${this.request.parameters.q || 'coordinates'})`;
+		this.request.origNote = this.request.note;
+	}
+}
+
+module.exports = {
+	get
+};
 ```
 
 #### Key Features of the Weather Service
