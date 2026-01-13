@@ -1768,14 +1768,11 @@ exports.get = async (props) => {
 
 	return new Promise(async (resolve, reject) => {
 		try {
-			// Extract question from query parameters (optional)
-			let question = props?.queryParameters?.question || "Will this work?";
 			
-			DebugAndLog.debug(`${logIdentifier}: question: ${question}`);
+			DebugAndLog.debug(`${logIdentifier}: Called`);
 
 			// Prepare query object for service
 			const query = {
-				question: question,
 				calcMsToDeadline: props?.calcMsToDeadline,
 				deadline: props?.deadline
 			};
@@ -1783,7 +1780,7 @@ exports.get = async (props) => {
 			// Call service and format through view
 			data = EightBallView.view(await EightBallSvc.fetch(query));
 
-			DebugAndLog.debug(`${logIdentifier}: 8 Ball response for question: ${question}`, data);
+			DebugAndLog.debug(`${logIdentifier}: 8 Ball response`, data);
 
 		} catch (error) {
 			DebugAndLog.error(`${logIdentifier}: Error: ${error.message}`, error.stack);
@@ -1808,6 +1805,7 @@ const {
 		APIRequest
 	}
 } = require("@63klabs/cache-data");
+const conf
 
 const logIdentifier = "EightBall Service GET";
 
@@ -1823,24 +1821,6 @@ exports.fetch = async (query) => {
 		DebugAndLog.debug(`${logIdentifier}: Query Received`, query);
 
 		try {
-			// Configure the API request
-			const request = {
-				method: "GET",
-				protocol: "https",
-				host: "8ball.delegator.com",
-				path: "/magic/JSON/question",
-				parameters: {
-					question: encodeURIComponent(query?.question || "Will this work?")
-				},
-				headers: {
-					'accept': 'application/json',
-					'user-agent': 'atlantis-starter-02/1.0'
-				},
-				options: {
-					timeout: query?.calcMsToDeadline(query?.deadline) ?? 5000
-				},
-				note: "Get 8 Ball prediction"
-			};
 
 			DebugAndLog.debug(`${logIdentifier}: API Request`, request);
 
@@ -2181,7 +2161,7 @@ const {
 } = require("@63klabs/cache-data");
 
 const { Config } = require("../config");
-const { WeatherDao } = require("../models");
+// const { WeatherDao } = require("../models");
 
 const logIdentifier = "Weather Service GET";
 
@@ -2208,15 +2188,6 @@ exports.fetch = async (query) => {
 
 			// Get cache profile for current weather
 			let cacheCfg = connection.getCacheProfile("current");
-
-			// Prepare DAO query with location and options
-			const daoQuery = {
-				city: query?.city,
-				lat: query?.lat,
-				lon: query?.lon,
-				units: query?.units || "metric",
-				lang: query?.lang || "en"
-			};
 
 			DebugAndLog.debug(`${logIdentifier}: Query to DAO`, daoQuery);
 
