@@ -1794,59 +1794,42 @@ exports.get = async (props) => {
 Create a new file `services/eightball.service.js`:
 
 ```javascript
-const { 
-	tools: {
-		DebugAndLog,
-		Timer,
-		APIRequest
-	}
+const {
+    tools: {
+        DebugAndLog,
+        Timer
+    },
+    endpoint // use endpoint.get() to directly call an endpoint
 } = require("@63klabs/cache-data");
-const conf
 
 const logIdentifier = "EightBall Service GET";
 
 /**
- * Fetch 8 Ball prediction without caching
- * @param {object} query - Query parameters from controller
- * @returns {object} results - Raw API response
- */
+* Fetch 8 Ball prediction without caching
+* @param {object} query - Query parameters from controller
+* @returns {object} results - Raw API response
+*/
 exports.fetch = async (query) => {
-	return new Promise(async (resolve, reject) => {
-		let results = {};
-		const timer = new Timer(logIdentifier, true);
-		DebugAndLog.debug(`${logIdentifier}: Query Received`, query);
+    return new Promise(async (resolve, reject) => {
+        let resultBody = {};
+        const timer = new Timer(logIdentifier, true);
+        DebugAndLog.debug(`${logIdentifier}: Query Received`, query);
 
-		try {
+        try {
 
-			DebugAndLog.debug(`${logIdentifier}: API Request`, request);
+            // Make direct API call without caching
+            results = await endpoint.get({url: "https://api.chadkluck.net/8ball"});
 
-			// Make direct API call without caching
-			const apiRequest = new APIRequest(request);
-			const response = await apiRequest.send();
+			resultBody = results.body || {};
 
-			// Parse JSON response
-			if (response.statusCode === 200 && response.body) {
-				try {
-					results = JSON.parse(response.body);
-					DebugAndLog.debug(`${logIdentifier}: Successful response`, results);
-				} catch (parseError) {
-					DebugAndLog.error(`${logIdentifier}: JSON Parse Error: ${parseError.message}`, parseError.stack);
-					results = { error: "Failed to parse response" };
-				}
-			} else {
-				DebugAndLog.error(`${logIdentifier}: API Error - Status: ${response.statusCode}`);
-				results = { error: "API request failed" };
-			}
-
-		} catch (error) {
-			DebugAndLog.error(`${logIdentifier}: Error: ${error.message}`, error.stack);
-			results = { error: "Service unavailable" };
-		} finally {
-			timer.stop();
-		}
-
-		resolve(results);
-	});
+        } catch (error) {
+            DebugAndLog.error(`${logIdentifier}: Error: ${error.message}`, error.stack);
+            resultBody = { error: "Service unavailable" };
+        } finally {
+            timer.stop();
+            resolve(resultBody);
+        }
+    });
 };
 ```
 
@@ -1855,75 +1838,38 @@ exports.fetch = async (query) => {
 Create a new file `views/eightball.view.js`:
 
 ```javascript
-const { 
-	tools: {
-		Timer
-	}
+const {
+  tools: {
+    Timer
+  }
 } = require("@63klabs/cache-data");
-
-const utils = require('../utils');
 
 const logIdentifier = "EightBall View";
 
 /**
- * Transform 8 Ball API response into consistent format
- * @param {object} resultsFromSvc - Raw service response
- * @returns {object} - Formatted 8 Ball response
- */
+* Transform 8 Ball API response into consistent format
+* @param {object} resultsFromSvc - Raw service response
+* @returns {object} - Formatted 8 Ball response
+*/
 exports.view = (resultsFromSvc) => {
-	const viewTimer = new Timer(`Timer: ${logIdentifier}`, true);
+  const viewTimer = new Timer(`Timer: ${logIdentifier}`, true);
 
-	let finalView = {};
+  let finalView = null;
 
-	try {
-		// Handle error responses
-		if (resultsFromSvc?.error) {
-			finalView = {
-				success: false,
-				error: resultsFromSvc.error,
-				answer: "Ask again later",
-				question: "Unknown"
-			};
-		} 
-		// Handle successful responses
-		else if (resultsFromSvc?.magic) {
-			// Generate a unique ID for this prediction
-			const predictionId = utils.hash.takeFirst(
-				`${resultsFromSvc.magic.question}-${resultsFromSvc.magic.answer}-${Date.now()}`, 
-				12
-			);
+  try {
+    finalView = resultsFromSvc;
+  } catch (error) {
+    // Handle view processing errors
+    finalView = {
+      success: false,
+      error: "View processing failed",
+	  prediction: "The magic 8 ball is broken"
+    };
+  } finally {
+    viewTimer.stop();
+    return finalView;
+  };
 
-			finalView = {
-				success: true,
-				id: `8B-${predictionId}`,
-				question: resultsFromSvc.magic.question || "Unknown question",
-				answer: resultsFromSvc.magic.answer || "Ask again later",
-				type: resultsFromSvc.magic.type || "neutral",
-				timestamp: new Date().toISOString()
-			};
-		}
-		// Handle unexpected response format
-		else {
-			finalView = {
-				success: false,
-				error: "Unexpected response format",
-				answer: "The spirits are unclear",
-				question: "Unknown"
-			};
-		}
-
-	} catch (error) {
-		// Handle view processing errors
-		finalView = {
-			success: false,
-			error: "View processing failed",
-			answer: "The magic 8 ball is broken",
-			question: "Unknown"
-		};
-	}
-
-	viewTimer.stop();
-	return finalView;
 };
 ```
 
@@ -1980,21 +1926,115 @@ module.exports = {
 };
 ```
 
+#### Step 8: Update Template
+
+```yaml
+GetEightBallData:
+          Type: Api
+          Properties:
+            Path: /api/8ball
+            Method: get
+            RestApiId: !Ref WebApi
+ 
+```
+
+#### Step 9: Update Template Open API Spec
+
+```yaml
+/api/8ball/:
+    get:
+      description: "GET 8Ball API"
+      responses:
+        $ref: '#/components/schemas/DataResponses'
+      x-amazon-apigateway-integration:
+        httpMethod: post
+        type: aws_proxy
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AppFunction.Arn}/invocations
+```
+
+#### Step 10: Deploy
+
+#### Step 11: Update `eightball.service` to use Connections
+
+When we created the service, just to keep it simple, we passed a hard coded URL to the `endpoint.get()` method:
+
+```javascript
+results = await endpoint.get({url: "https://api.chadkluck.net/8ball"});
+```
+
+Instead, we can use the existing connection configuration system to manage the endpoint details. This allows us to centrally store all connection configurations in one place, making it easier to review and understand the endpoints our application is connecting too.
+
+The connections object contains fields similar to a fetch request, breaking down the URL into `host`, `path`, and other HTTP request properties.
+
+Update `config/connections.js` to add the 8 Ball connection after the `games` connection:
+
+```js
+{
+	// ... games
+},
+{
+	name: "8ball",
+	host: "api.chadkluck.net",
+	path: "/8ball",
+}
+```
+
+Unlike the `games` connection, we won't add any cache properties. We will also keep it simple and not add query string parameters, headers, or method.
+
+Next, we will update `services/eightball.service.js`:
+
+```javascript
+// ADD the following require near the top of the script
+const { Config } = require("../config"); // configured connections
+```
+
+Further down, in the try block, update:
+
+```javascript
+	// Make direct API call without caching
+	results = await endpoint.get({url: "https://api.chadkluck.net/8ball"});
+
+	resultBody = results.body || {};
+```
+
+To:
+
+```javascript
+	// Make direct API call without caching
+	let connection = Config.getConnection("8ball"); // by name defined in connections.js
+	let conn = connection.toObject();
+	results = await endpoint.get(conn);
+	resultBody = results.body || {};
+```
+
+#### Step 12: Deploy Again
+
+After making these changes, redeploy the application to apply the updates.
+
+```bash
+git add --all
+git commit -m "changed 8Ball service to use config/connections"
+git push
+git switch test
+git merge dev
+git push
+git switch dev
+```
+
 #### Key Differences from Cached Services
 
 **Direct API Calls vs Caching:**
 
-1. **No CacheableDataAccess**: Uses `APIRequest` directly
-2. **No Connection Configuration**: Builds request object inline
+1. **No CacheableDataAccess**: Uses `endpoint.get` directly
 3. **Real-time Data**: Each request gets fresh data
 4. **Simpler Flow**: Fewer abstraction layers
 
 **When to Use Direct Calls:**
 
 - **Real-time Data**: Stock prices, random numbers, current time
-- **Personalized Responses**: User-specific data that shouldn't be shared
 - **Small, Fast APIs**: When caching overhead isn't worth it
-- **Testing/Development**: When you need to see immediate changes
+- **Testing/Development**: Before building out complex logic in views and DAOs
 
 **Performance Considerations:**
 
@@ -2010,21 +2050,13 @@ module.exports = {
 ```bash
 # Basic request
 curl -X GET "https://your-api-gateway-url/api/8ball"
-
-# With custom question
-curl -X GET "https://your-api-gateway-url/api/8ball?question=Will%20it%20rain%20tomorrow"
 ```
 
 **Expected Response:**
 
 ```json
 {
-  "success": true,
-  "id": "8B-a1b2c3d4e5f6",
-  "question": "Will it rain tomorrow?",
-  "answer": "Outlook not so good",
-  "type": "negative",
-  "timestamp": "2024-01-15T10:30:00.000Z"
+	"prediction": "Outlook not so good"
 }
 ```
 
@@ -2035,9 +2067,28 @@ curl -X GET "https://your-api-gateway-url/api/8ball?question=Will%20it%20rain%20
   "success": false,
   "error": "Service unavailable",
   "answer": "Ask again later",
-  "question": "Unknown"
 }
 ```
+
+In the 8 Ball view we returned all properties in the body.
+
+You can add in different views that return only certain properties.
+
+```javascript
+// views/eightball.view.js - only prediction example.
+try {
+	// return ONLY the prediction
+    finalView = { prediction: resultsFromSvc.prediction || "Unable to predict now" };
+}
+```
+
+However, a more robust way would be to allow a `?display=prediction,lucky_numbers` query string in the request and use that in determining what fields to return.
+
+This filter would be done in the view. You would allow the service to return the full result and then transform that result.
+
+The only time you should pass additional parameters to the service is when the endpoint itself supports it. Otherwise, perform all data transformation in the View. That aligns with the principles of the Model-View-Controller design pattern.
+
+You WILL need at least a `prediction` later in the tutorial so ensure you at least keep that property in the data your view returns.
 
 #### Monitoring and Debugging
 
@@ -2140,8 +2191,6 @@ module.exports = connections;
 ```
 
 #### Step 3: Create the Weather Service
-
-> TODO: change tutorial to make a direct connection first, then convert to DAO
 
 Create a new file `services/weather.service.js`:
 
@@ -2452,7 +2501,7 @@ case "api/weather":
 
 #### Step 8: Create the Weather Base DAO
 
-> TODO: Right now we implemented using the generic endpiont, but if we want to do some basic transformations for EVERY request, such as add headers etc, we can do that using our own custom DAO (Data Access Object)
+> TODO: Right now we implemented using the generic endpoint, but if we want to do some basic transformations for EVERY request, such as add headers etc, we can do that using our own custom DAO (Data Access Object)
 
 Create a new file `models/ApiWeather.dao.js`:
 
