@@ -127,8 +127,8 @@ Clone the repository to your machine and check-out the `dev` branch to see your 
 
 To ensure everything is set-up correctly, start with:
 
-- [Prerequisite #0: SAM Config Repo Quick Start Documentation for Developers](https://github.com/63Klabs/atlantis-cfn-configuration-repo-for-serverless-deployments) (if you haven't already)
-- [Prerequisite #1: Serverless 8 Ball Example (chadkluck/serverless-sam-8ball-example)](https://github.com/chadkluck/serverless-sam-8ball-example) (if you haven't already)
+- [Prerequisite #0: Serverless 8 Ball Example (chadkluck/serverless-sam-8ball-example)](https://github.com/chadkluck/serverless-sam-8ball-example) (if you haven't already)
+- [Prerequisite #1: SAM Config Repo Quick Start Documentation for Developers](https://github.com/63Klabs/atlantis-cfn-configuration-repo-for-serverless-deployments) (if you haven't already)
 - [Tutorial #0: Basic API Gateway with Lambda Function Written in Node.js](./tutorials/00-basic-api-gateway-with-lambda-written-in-node/README.md)
 
 Then, move on to:
