@@ -116,7 +116,7 @@ module.exports = {
 			categoryId: categoryId // /products/{categoryId}
 			productId: productId // /products/{categoryId}/{productId}
 		},
-		queryParameters: {
+		queryStringParameters: {
 			size: sizeFilter, // products?size=10
 			cat: categoryId, // products?cat=BRN
 			id: productId
@@ -683,7 +683,7 @@ if (REQ.isValid()) {
 	// props contains:
 	// - method: HTTP method (GET, POST, etc.)
 	// - pathParameters: URL path variables
-	// - queryParameters: Query string parameters
+	// - queryStringParameters: Query string parameters
 	// - headers: Request headers
 	// - body: Request body (parsed if JSON)
 	// - calcMsToDeadline: Function to calculate remaining time
@@ -704,7 +704,7 @@ module.exports = {
 			categoryId: categoryId, // Custom validation function
 			productId: productId
 		},
-		queryParameters: {
+		queryStringParameters: {
 			size: sizeFilter,
 			cat: categoryId
 		}
@@ -727,7 +727,7 @@ const props = {
 		categoryId: "GRE",
 		productId: "12345"
 	},
-	queryParameters: {
+	queryStringParameters: {
 		size: "10",
 		format: "json"
 	},
@@ -2281,11 +2281,11 @@ exports.get = async (props) => {
 	return new Promise(async (resolve, reject) => {
 		try {
 			// Extract location parameters
-			let city = props?.queryParameters?.city || props?.pathParameters?.city;
-			let lat = props?.queryParameters?.lat;
-			let lon = props?.queryParameters?.lon;
-			let units = props?.queryParameters?.units || "metric";
-			let lang = props?.queryParameters?.lang || "en";
+			let city = props?.queryStringParameters?.city || props?.queryStringParameters?.city;
+			let lat = props?.queryStringParameters?.lat;
+			let lon = props?.queryStringParameters?.lon;
+			let units = props?.queryStringParameters?.units || "metric";
+			let lang = props?.queryStringParameters?.lang || "en";
 
 			DebugAndLog.debug(`${logIdentifier}: Location - city: ${city}, lat: ${lat}, lon: ${lon}`);
 
@@ -3976,9 +3976,9 @@ exports.get = async (props) => {
 	return new Promise(async (resolve, reject) => {
 		try {
 			// Extract parameters
-			const city = props?.queryParameters?.city || "London,UK";
-			const question = props?.queryParameters?.question || "Will today be a good day?";
-			const includeGames = props?.queryParameters?.games !== 'false';
+			const city = props?.queryStringParameters?.city || "London,UK";
+			const question = props?.queryStringParameters?.question || "Will today be a good day?";
+			const includeGames = props?.queryStringParameters?.games !== 'false';
 			
 			// Prepare queries for each service
 			const baseQuery = {
@@ -4088,9 +4088,9 @@ exports.post = async (props) => {
 				created_at: new Date().toISOString(),
 				dashboard: dashboardData,
 				query: {
-					city: props?.queryParameters?.city || "London,UK",
-					question: props?.queryParameters?.question || "Will today be a good day?",
-					includeGames: props?.queryParameters?.games !== 'false'
+					city: props?.queryStringParameters?.city || "London,UK",
+					question: props?.queryStringParameters?.question || "Will today be a good day?",
+					includeGames: props?.queryStringParameters?.games !== 'false'
 				}
 			};
 

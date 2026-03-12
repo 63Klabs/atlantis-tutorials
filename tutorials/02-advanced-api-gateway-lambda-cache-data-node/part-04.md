@@ -1087,16 +1087,16 @@ describe('Test validations from config/validations.js', () => {
         });
     });
 
-    describe('validations.parameters.queryParameters.players', () => {
+    describe('validations.parameters.queryStringParameters.players', () => {
         it('should validate a valid number of players', () => {
-            expect(validations.parameters.queryParameters.players('5'))
+            expect(validations.parameters.queryStringParameters.players('5'))
                 .to.be.true;
         });
 
         it('should reject invalid player counts', () => {
             const invalidValues = ['0', '11', 'invalid', '', null];
             invalidValues.forEach(value => {
-                expect(validations.parameters.queryParameters.players(value))
+                expect(validations.parameters.queryStringParameters.players(value))
                     .to.be.false;
             });
         });
