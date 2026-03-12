@@ -332,15 +332,11 @@ const { ExampleDao } = require("../models");
 exports.fetch = async (query) => {
 	try {
 		// Get connection configuration
-		let connection = Config.getConnection("games");
-		let conn = connection.toObject();
+		let {conn, cacheProfile} = Config.getConnCacheProfile("games", "default");
 		
 		// Configure timeout
 		conn.options ??= {};
 		conn.options.timeout ??= query?.calcMsToDeadline(query?.deadline) ?? 8000;
-
-		// Get cache profile
-		let cacheCfg = connection.getCacheProfile("default");
 
 		// Prepare query for DAO
 		const daoQuery = {
@@ -350,8 +346,8 @@ exports.fetch = async (query) => {
 
 		// Make cached request
 		const cacheObj = await CacheableDataAccess.getData(
-			cacheCfg,        // Cache configuration
-			ExampleDao.get,  // DAO function to call
+			cacheProfile,   // Cache profile
+			ExampleDao.get, // DAO function to call
 			conn,           // Connection configuration
 			daoQuery        // Query parameters
 		);
@@ -860,17 +856,13 @@ exports.fetch = async (query) => {
 
 		try {
 			// 1. Get connection configuration
-			let connection = Config.getConnection("games");
-			let conn = connection.toObject();
+			let {conn, cacheProfile} = Config.getConnCacheProfile("games", "default");
 			
 			// 2. Configure timeout based on deadline
 			conn.options ??= {};
 			conn.options.timeout ??= query?.calcMsToDeadline(query?.deadline) ?? 8000;
 
-			// 3. Get cache configuration
-			let cacheCfg = connection.getCacheProfile("default");
-
-			// 4. Prepare query for DAO
+			// 3. Prepare query for DAO
 			const daoQuery = {
 				organizationCode: query?.organizationCode,
 				gamePrimaryId: query?.gamePrimaryId
@@ -878,15 +870,15 @@ exports.fetch = async (query) => {
 
 			DebugAndLog.debug(`${logIdentifier}: Query to DAO`, daoQuery);
 
-			// 5. Make cached request through DAO
+			// 4. Make cached request through DAO
 			const cacheObj = await CacheableDataAccess.getData(
-				cacheCfg,        // Cache configuration
+				cacheProfile,    // Cache profile
 				ExampleDao.get,  // DAO function
-				conn,           // Connection configuration
-				daoQuery        // Query parameters
+				conn,            // Connection configuration
+				daoQuery         // Query parameters
 			);
 
-			// 6. Extract response body
+			// 5. Extract response body
 			results = cacheObj.getBody(true);
 
 			DebugAndLog.debug(`${logIdentifier}: Retrieved games by organizationCode: ${query?.organizationCode}`, results);
@@ -1386,7 +1378,7 @@ exports.fetch = async (query) => {
 
 		try {
 			// 1. Get connection configuration
-			let connection = Config.getConnection("games");
+			let {conn, cacheProfile} = Config.getConnCacheProfile("games", "default");
 			let conn = connection.toObject();
 			
 			// 2. Configure timeout
@@ -1394,10 +1386,7 @@ exports.fetch = async (query) => {
 			conn.options.timeout ??= query?.calcMsToDeadline(query?.deadline) ?? 
 				Config.getSettings()?.externalRequestDefaultTimeoutInMs ?? 8000;
 
-			// 3. Get cache profile
-			let cacheCfg = connection.getCacheProfile("default");
-
-			// 4. Prepare DAO query
+			// 3. Prepare DAO query
 			const daoQuery = {
 				organizationCode: query?.organizationCode,
 				gamePrimaryId: query?.gamePrimaryId
@@ -1405,18 +1394,18 @@ exports.fetch = async (query) => {
 
 			DebugAndLog.debug(`${logIdentifier}: Query to DAO`, daoQuery);
 
-			// 5. Make cached request
+			// 4. Make cached request
 			const cacheObj = await CacheableDataAccess.getData(
-				cacheCfg,        // Cache configuration
+				cacheProfile,        // Cache Profile
 				ExampleDao.get,  // DAO function to call
 				conn,           // Connection configuration
 				daoQuery        // Query parameters
 			);
 
-			// 6. Extract response body
+			// 5. Extract response body
 			results = cacheObj.getBody(true);
 
-			DebugAndLog.debug(`${logIdentifier}: Retrieved games by organizationCode: ${query?.organizationCode}`, results);
+			DebugAndLog.debug(`${logIdentifier}: Retrieved games`, results);
 
 		} catch (error) {
 			DebugAndLog.error(`${logIdentifier}: Error: ${error.message}`, error.stack);
@@ -2002,8 +1991,7 @@ To:
 
 ```javascript
 	// Make direct API call without caching
-	let connection = Config.getConnection("8ball"); // by name defined in connections.js
-	let conn = connection.toObject();
+	let conn = Config.getConn("8ball"); // by name defined in connections.js
 	results = await endpoint.get(conn);
 	resultBody = results.body || {};
 ```
@@ -2224,21 +2212,17 @@ exports.fetch = async (query) => {
 
 		try {
 			// Get weather connection configuration
-			let connection = Config.getConnection("weather");
-			let conn = connection.toObject();
-
-			// Get cache profile for current weather
-			let cacheCfg = connection.getCacheProfile("current");
+			let {conn, cacheProfile} = Config.getConnCacheProfile("weather", "current");
 
 			DebugAndLog.debug(`${logIdentifier}: Query to DAO`, daoQuery);
 
 			// Make cached request through DAO
 			const cacheObj = await CacheableDataAccess.getData(
-				cacheCfg,        // Cache configuration
+				cacheProfile,    // Cache profile
 //				WeatherDao.get,  // DAO function we'll create later
 				endpoint.get,    // Using endpoint directly
-				conn,           // Connection configuration
-				daoQuery        // Query parameters
+				conn,            // Connection configuration
+				daoQuery         // Query parameters
 			);
 
 			// Extract response body
