@@ -1,4 +1,4 @@
-# Creating Your Own Atlantis Compatible Applications
+# Creating Custom Atlantis Compatible Applications
 
 Whether you are creating your own application from scratch, or modifying someone else's code to deploy using Atlantis, there are some key requirements to ensure deployments work withh the Atlantis Platform.
 

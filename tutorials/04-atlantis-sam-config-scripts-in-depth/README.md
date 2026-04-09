@@ -1,3 +1,3 @@
-# Atlantis SAM Config Scripts In Depth
+# Atlantis SAM Config Scripts In-Depth
 
 TODO

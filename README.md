@@ -125,16 +125,34 @@ Clone the repository to your machine and check-out the `dev` branch to see your 
 
 ## Tutorials
 
-To ensure everything is set-up correctly, start with:
+### Intro Tutorials
+
+Start with the basics.
 
 - [Prerequisite #0: Serverless 8 Ball Example (chadkluck/serverless-sam-8ball-example)](https://github.com/chadkluck/serverless-sam-8ball-example) (if you haven't already)
 - [Prerequisite #1: SAM Config Repo Quick Start Documentation for Developers](https://github.com/63Klabs/atlantis-cfn-configuration-repo-for-serverless-deployments) (if you haven't already)
 - [Tutorial #0: Basic API Gateway with Lambda Function Written in Node.js](./tutorials/00-basic-api-gateway-with-lambda-written-in-node/README.md)
 
-Then, move on to:
+### Intermediate Tutorials
 
-1. [Tutorial #1: Basic API Gateway with Lambda written in Python](./tutorials/01-basic-api-gateway-with-lambda-written-in-python/README.md)
-2. [Tutorial #2: Advanced API Gateway and Lambda using Cache-Data (Node)](./tutorials/02-advanced-api-gateway-lambda-cache-data-node/README.md)
-3. Coming Soon: Static Website Deployment with CodeBuild, S3, CloudFront, and Route53
-4. Coming Soon: Cache Invalidation using Event Triggered Lambda, SQS, Scheduled Lambda, and AWS SDK in Python
-6. [Tutorial #5: Video Transcoding using Elemental MediaConvert (chadkluck/serverless-video-converter)](https://github.com/chadkluck/serverless-video-converter)
+Move into advanced concepts as you explore Atlantis templates and scripts.
+
+1. [Tutorial #01: Basic API Gateway with Lambda (Python)](./tutorials/01-basic-api-gateway-with-lambda-written-in-python/README.md)
+2. [Tutorial #02: Advanced API Gateway and Lambda (Node)](./tutorials/02-advanced-api-gateway-lambda-cache-data-node/README.md)
+3. [Tutorial #03: Deploying a Static Website](./tutorials/03-static-website-deployment/README.md)
+4. [Tutorial #04: Atlantis SAM Config Scripts In Depth](./tutorials/04-atlantis-sam-config-scripts-in-depth/README.md)
+5. [Tutorial #05: Run CodeBuild on a Schedule for Operations](./tutorials/05-run-codebuild-on-a-schedule-for-operations/README.md)
+6. [Tutorial #06: Implementing @63klabs/cache-data in a Web Service](./tutorials/06-implementing-cache-data/README.md)
+7. [Tutorial #07: Using the Atlantis MCP Server for AI-Assisted Development](./tutorials/07-using-the-atlantis-mcp-server/README.md)
+8. [Tutorial #08: Atlantis SAM Templates In-Depth](./tutorials/08-atlantis-sam-templates-in-depth/README.md)
+9. [Tutorial #09: Creating Custom Atlantis Compatible Applications](./tutorials/09-creating-custom-atlantis-compatible-applications/README.md)
+10. [Tutorial #10: Atlantis Platform In-Depth](./tutorials/10-atlantis-platform-in-depth/README.md)
+
+### Built on Atlantis
+
+These are **ready-to-deploy-and-run** projects built on Atlantis. They don't offer tutorials beyond installation instructions and configuration documentation, however, they may be used as examples and may provide useful as you deploy workloads on AWS.
+
+- [Serverless CloudFrontCache Invalidation (63klabs/serverless-cloudfront-cache-invalidation)](https://github.com/63Klabs/atlantis-starter-03-serverless-cloudfront-cache-invalidation)
+- [Serverless Image Resizer (chadkluck/serverless-image-resizer)](https://github.com/chadkluck/serverless-image-resizer)
+- [Video Transcoding using Elemental MediaConvert (chadkluck/serverless-video-converter)](https://github.com/chadkluck/serverless-video-converter)
+- [Atlantis (serverless) MCP Server (63klabs/atlantis-mcp)](https://github.com/63Klabs/atlantis-mcp)
