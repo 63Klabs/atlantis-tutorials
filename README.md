@@ -150,7 +150,7 @@ Move into advanced concepts as you explore Atlantis templates and scripts.
 
 ### Built on Atlantis
 
-These are **ready-to-deploy-and-run** projects built on Atlantis. They don't offer tutorials beyond installation instructions and configuration documentation, however, they may be used as examples and may provide useful as you deploy workloads on AWS.
+These are **ready-to-deploy-and-run** projects built on Atlantis. They don't offer tutorials beyond installation instructions and configuration documentation, however, they may be used as examples and prove useful as you deploy workloads on AWS.
 
 - [Serverless CloudFrontCache Invalidation (63klabs/serverless-cloudfront-cache-invalidation)](https://github.com/63Klabs/atlantis-starter-03-serverless-cloudfront-cache-invalidation)
 - [Serverless Image Resizer (chadkluck/serverless-image-resizer)](https://github.com/chadkluck/serverless-image-resizer)
