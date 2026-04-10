@@ -156,6 +156,7 @@ You may need to add a `beta` branch to your repository.
 ```mermaid
 graph TB
     subgraph repo["Git Repository"]
+        direction LR
         dev["dev branch"]
         test["test branch"]
         beta["beta branch"]
