@@ -209,9 +209,5 @@ graph TB
     cf_test -.-> dns_test
     cf_beta -.-> dns_beta
     cf_prod -.-> dns_prod
-
-    users(("Users")) --> dns_prod
-    users --> dns_beta
-    users --> dns_test
 ```
 
