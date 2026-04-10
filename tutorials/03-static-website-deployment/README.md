@@ -158,22 +158,26 @@ graph TB
     subgraph repo["Git Repository"]
         dev["dev branch"]
         test["test branch"]
+        beta["beta branch"]
         main["main branch"]
         dev -->|merge| test
-        test -->|merge| main
+        test -->|merge| beta
+        beta -->|merge| main
     end
 
     subgraph pipelines["CodePipeline + CodeBuild<br/><i>Per Stage</i>"]
+        direction LR
         pipe_test["acme-my-website-test-Pipeline<br/>CodeBuild Only"]
         pipe_beta["acme-my-website-beta-Pipeline<br/>CodeBuild Only"]
         pipe_prod["acme-my-website-prod-Pipeline<br/>CodeBuild Only"]
     end
 
     test -->|triggers| pipe_test
-    main -->|triggers| pipe_beta
+    beta -->|triggers| pipe_beta
     main -->|triggers| pipe_prod
 
     subgraph s3["S3 Origin Bucket <i>Shared across stages — No public access</i> acme-my-website-origin-{AccountId}-{Region}-an"]
+        direction LR
         s3_test["test/public/"]
         s3_beta["beta/public/"]
         s3_prod["prod/public/"]
@@ -184,6 +188,7 @@ graph TB
     pipe_prod -->|"aws s3 sync dist<br/>→ s3://{bucket}/prod/public/"| s3_prod
 
     subgraph cdn["CloudFront Distributions <i>Per Stage — OAC Access to S3</i>"]
+        direction LR
         cf_test["acme-my-website-test<br/>CloudFront Distribution<br/><i>CachingDisabled</i>"]
         cf_beta["acme-my-website-beta<br/>CloudFront Distribution"]
         cf_prod["acme-my-website-prod<br/>CloudFront Distribution"]
@@ -194,6 +199,7 @@ graph TB
     s3_prod -.->|OAC| cf_prod
 
     subgraph dns["Route 53 / Custom Domains <i>Optional</i>"]
+        direction LR
         dns_test["my-website-test.example.com"]
         dns_beta["my-website-beta.example.com"]
         dns_prod["my-website.example.com"]
