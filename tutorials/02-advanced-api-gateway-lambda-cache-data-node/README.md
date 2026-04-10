@@ -1,8 +1,6 @@
-# Tutorial #2: Advanced API Gateway and Lambda using Cache-Data (Node)
+# Tutorial #02: Advanced API Gateway and Lambda using Cache-Data (Node)
 
 This tutorial is in four parts and covers many best practices used for production applications. Therefore, it is much longer than other tutorials. However, all following tutorials will utilize these concepts without necessarily calling them out.
-
-> This tutorial is THE tutorial that bridges learning and application development for production environments. It is also THE tutorial for working with the @63klabs/cache-data npm package.
 
 ## Prerequisite
 
@@ -10,24 +8,24 @@ An understanding of concepts outlined in previous tutorials is required.
 
 If you have not read through the [introductory README](../../README.md), or have not completed the [previous tutorials](../../README.md#tutorials), please do so before proceeding. Each tutorial builds on concepts from the previous and is not something to just "jump into."
 
+You will also need to ensure a CloudFormation stack named `<prefix>-cache-data-storage` exists as it is required for Application Starter #02. One easy way to check is to run the command from the CLI (replace 'YOUR_PROFILE' and 'acme'):
+
+```
+aws cloudformation list-exports --profile YOUR_PROFILE --query "Exports[?starts_with(Name, 'acme-CacheData')]"
+```
+
+- **If it returns `[]`** then the stack does not exist and you will need to tell your instructor, supervisor, or account administrator and move on to the [next tutorial](../03-static-website-deployment/README.md).
+- **If it returns a JSON list** of Exports, Names, and Values then you are good to continue with this tutorial.
+
 ## Objectives
 
-By the end of this tutorial you will be able to deploy a production-ready application that utilizes a separate storage stack with S3 and DynamoDb resources for use with a Lambda application stack that provides an API endpoint for a web service that incorporates caching, monitoring, deployment tests, and production capabilities.
+By the end of this tutorial you will be able to deploy a production-ready application that provides an API endpoint for a complex web service that incorporates monitoring, deployment tests, and production capabilities.
 
-### Part I Objectives: Multiple Stacks
-
-1. Stack Organization: "Separation of Stacks"
-2. Create a storage stack with S3 and DynamoDb resources
-3. Caching using DynamoDb table and an S3 bucket
-4. Cache security
-5. Stack Outputs and Exports
-
-### Part II Objectives: Templates and Environment
+### Part I Objectives: Templates and Environment
 
 1. Seed repository and create pipeline
 2. Inspect Parameters and Environment Variables  
-3. Check endpoint and cache in DynamoDb
-4. Identify components of application template
+3. Identify components of application template
    1. Metadata
    2. Parameters and overrides
    3. Utilize conditionals for resource creation and properties
@@ -35,11 +33,11 @@ By the end of this tutorial you will be able to deploy a production-ready applic
    5. Using `ImportValue` instead of parameters
    6. Using `Fn::Transform` and `AWS::Include`
    7. Outputs
-5. Identify the components of build process
+4. Identify the components of build process
    1. Secure secrets using SSM Parameter Store
    2. Installs and scripts
 
-### Part III Objectives: Application Starter 02 API Gateway with Lambda using Cache-Data (Node.js)
+### Part II Objectives: Application Starter 02 API Gateway with Lambda using Cache-Data (Node.js)
 
 1. Inspect and utilize various `cache` and `tools` features of the @63klabs/cache-data npm package
    1. Configuration
@@ -54,14 +52,11 @@ By the end of this tutorial you will be able to deploy a production-ready applic
    6. Models
    7. Responses
 3. Dive deeper into controllers, services, models, and views
-   1. Implement a copy of Example components for the Games API (using CachedData)
-   2. Implement a basic service with a direct call to an endpoint with no caching (8 Ball)
-   3. Implement a service using Data Access Object with an api key behind caching (Weather)
-   4. Implement a service with a write and call to a DynamoDb table
-   4. Static, Sample, and Test data
-   5. Create a Controller and View utilizing the four data services
+   1. Implement a basic service with a direct call to an endpoint with no caching (8 Ball)
+   2. Implement a service using Cache Data Access Object (Games)
+   3. Create a Controller and View utilizing a data service
 
-### Part IV Objectives: Monitoring and Performance
+### Part III Objectives: Monitoring and Performance
 
 1. Trace logs using X-Ray
 2. Monitor performance using Lambda Insights and CloudWatch Dashboards
@@ -73,9 +68,8 @@ By the end of this tutorial you will be able to deploy a production-ready applic
 
 ## Start
 
-> Note: This tutorial uses the Prefix `acme` and profile `ACME_DEV_PROFILE`. Be sure to replace with your own requirements. Also, if your organization requires you to add your username or name to the front of the repository name or ProjectID you may do so to keep the account tidy.
+> Note: This tutorial uses the `Prefix`: `acme` and `--profile YOUR_PROFILE`. Be sure to replace with your own requirements. Also, if your organization requires you to add your username or name to the front of the repository name or `ProjectId` you may do so to keep the account tidy.
 
 1. [Part I](./part-01.md)
 2. [Part II](./part-02.md)
 3. [Part III](./part-03.md)
-4. [Part IV](./part-04.md)

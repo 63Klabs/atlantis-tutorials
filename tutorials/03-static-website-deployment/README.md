@@ -10,7 +10,7 @@
 From the SAM Config repository:
 
 ```bash
-./cli/create_repo.py your-repo-name --profile default
+./cli/create_repo.py your-repo-name --profile YOUR_PROFILE
 # Choose 'None' for seeding
 ```
 
@@ -91,8 +91,8 @@ The S3 Bucket will be shared among all your deployments for your project (`test`
 From the SAM Config repository:
 
 ```bash
-./cli/config.py storage acme my-website --profile default
-./cli/deploy.py storage acme my-website --profile default
+./cli/config.py storage acme my-website --profile YOUR_PROFILE
+./cli/deploy.py storage acme my-website --profile YOUR_PROFILE
 # Make note of the S3 bucket name AND S3 bucket domain
 ```
 
@@ -119,10 +119,10 @@ Now that we have S3 set up, we can set up the CI/CD pipeline to build and copy t
 From the SAM Config repository:
 
 ```bash
-./cli/config.py pipeline acme my-website test --profile default
+./cli/config.py pipeline acme my-website test --profile YOUR_PROFILE
 # - Use CodeBuild Only Pipeline
 # - For Static Host bucket use the S3 bucket name
-./cli/deploy.py pipeline acme my-website test --profile default
+./cli/deploy.py pipeline acme my-website test --profile YOUR_PROFILE
 ```
 
 After the pipeline has deployed, use the Output link to see it in action. Check for any errors and follow along in the CodeBuild console as it builds and copies your site to S3.
@@ -136,11 +136,11 @@ We will now create the CloudFront Distribution that uses your bucket with the `t
 From the SAM Config repository:
 
 ```bash
-./cli/config.py network acme my-website test --profile default
+./cli/config.py network acme my-website test --profile YOUR_PROFILE
 # - There are a lot of parameters, for most you will accept the defaults
 # - Use S3 Bucket Origin Domain from storage output
 # - A custom domain for Route53 is optional, you can just use the provided CloudFront domain for the tutorial and development
-./cli/deploy.py network acme my-website test --profile default
+./cli/deploy.py network acme my-website test --profile YOUR_PROFILE
 ```
 
 From the output section you should see the CloudFront distribution domain. Follow the link and you should see your site.
@@ -375,7 +375,7 @@ The delete script is now ready to be ran from the SAM config repository:
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/delete.py pipeline acme my-website beta --profile default
+./cli/delete.py pipeline acme my-website beta --profile YOUR_PROFILE
 ```
 
 You will have the chance to either retain the stage's environment settings in the `samconfig` file for later re-deployment, or to delete it completely. Once all stage environments of a `samconfig` file are deleted the file and directory for that project is also deleted.
