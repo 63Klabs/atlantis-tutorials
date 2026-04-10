@@ -268,6 +268,73 @@ Once the distribution has deployed, you should be able to access your endpoint u
 
 Modify your web site to fetch data from the endpoint and display it on your site.
 
+### 7.3 Production Use
+
+> The following concepts of CloudFront Cache Invalidation and Logging are beyond the scope of this tutorial but may be explored on your own in the future. They are not required to finish this tutorial unless you are otherwise instructed by your supervisor or instructor.
+
+While the stacks you deployed have best-practices built in, typical production deployments also include Logging and CloudFront cache invalidation.
+
+#### Access Logging
+
+Logging can be set at two levels:
+
+- CloudFront (Web Logs)
+- S3 access
+
+CloudFront web access logs will include information about the request from the client, such as:
+
+```
+#Version: 1.0
+#Fields: date time x-edge-location sc-bytes c-ip cs-method cs(Host) cs-uri-stem sc-status cs(Referer) cs(User-Agent) cs-uri-query cs(Cookie) x-edge-result-type x-edge-request-id x-host-header cs-protocol cs-bytes time-taken x-forwarded-for ssl-protocol ssl-cipher x-edge-response-result-type cs-protocol-version fle-status fle-encrypted-fields c-port time-to-first-byte x-edge-detailed-result-type sc-content-type sc-content-len sc-range-start sc-range-end
+2026-03-30	02:33:55	MSP50-P1	9754	xx.xx.41.39	GET	d16wymzfzyj9xi.cloudfront.net	/	200	-	Mozilla/5.0%20(Macintosh;%20Intel%20Mac%20OS%20X%2010.15;%20rv:149.0)%20Gecko/20100101%20Firefox/149.0	-	-	Miss	cOJMEmKzoOA6fcqv-Yd4NlargWoqUENHMC4mBo3IXtue3zK_cvBV4A==	d16wymzfzyj9xi.cloudfront.net	https	301	0.276	-	TLSv1.3	TLS_AES_128_GCM_SHA256	Miss	HTTP/2.0	-	-	63617	0.276	Miss	text/html	9398	-	-
+2026-03-30	02:33:55	MSP50-P1	9754	xx.xx.41.39	GET	d16wymzfzyj9xi.cloudfront.net	/favicon.ico	200	https://d16wymzfzyj9xi.cloudfront.net/	Mozilla/5.0%20(Macintosh;%20Intel%20Mac%20OS%20X%2010.15;%20rv:149.0)%20Gecko/20100101%20Firefox/149.0	-	-	Miss	V3av-BbJHF-LY3jIQ7FJM3f-IpfrPrDcrJ3ess4SsUt_rJpxG5IYsw==	d16wymzfzyj9xi.cloudfront.net	https	146	0.187	-	TLSv1.3	TLS_AES_128_GCM_SHA256	Miss	HTTP/2.0	-	-	63617	0.186	Miss	text/html	9398	-	-
+2026-03-30	02:34:08	MSP50-P1	17851	xx.xx.41.39	GET	d16wymzfzyj9xi.cloudfront.net	/docs/use-cases	200	https://d16wymzfzyj9xi.cloudfront.net/	Mozilla/5.0%20(Macintosh;%20Intel%20Mac%20OS%20X%2010.15;%20rv:149.0)%20Gecko/20100101%20Firefox/149.0	-	-	Miss	EMMBfgaG4UIG93jLWH1GVrN5b-Y1kJiw5YhI2bq5_9I8UzW-rdesMg==	d16wymzfzyj9xi.cloudfront.net	https	36	0.159	-	TLSv1.3	TLS_AES_128_GCM_SHA256	Miss	HTTP/2.0	-	-	63617	0.158	Miss	text/html	17476	-	-
+2026-03-30	02:34:08	MSP50-P1	5981	xx.xx.41.39	GET	d16wymzfzyj9xi.cloudfront.net	/docs/css/style.css	200	https://d16wymzfzyj9xi.cloudfront.net/docs/use-cases	Mozilla/5.0%20(Macintosh;%20Intel%20Mac%20OS%20X%2010.15;%20rv:149.0)%20Gecko/20100101%20Firefox/149.0	-	-	Miss	6JfsQxpixVR5bUMFYD1gKVQDL0-yh_mzz0mTOlakFbkqDVnPYPxnfg==	d16wymzfzyj9xi.cloudfront.net	https	104	0.126	-	TLSv1.3	TLS_AES_128_GCM_SHA256	Miss	HTTP/2.0	-	-	63617	0.126	Miss	text/css	5635	-	-
+```
+
+S3 access logs will include information about any resource or client that accessed or tried to access objects:
+
+```
+efd-somestring-df11 acme-my-website-origin-123456789012-us-east-2-an [30/Mar/2026:01:09:38 +0000] xx.xx.41.39 - C36TRGH4ZJ7R8RHZ REST.OPTIONS.PREFLIGHT - "OPTIONS /acme-my-website-origin-123456789012-us-east-2-an HTTP/1.1" 200 - - - 5 - "https://123456789012-z2xzmo4z.us-east-2.console.aws.amazon.com/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:149.0) Gecko/20100101 Firefox/149.0" - z6uFa0AzIZyZEnXwUERc/uZizyBwFwzP36L7dyKP4Wf84zTwlvwCJrzT+dhyY9GbBW/h+eIVLIgtYF2448YcoVsf6kdzPUv5 - TLS_CHACHA20_POLY1305_SHA256 - s3.us-east-2.amazonaws.com TLSv1.3 - - -
+efd-somestring-df11 acme-my-website-origin-123456789012-us-east-2-an [30/Mar/2026:02:30:57 +0000] 10.0.71.123 arn:aws:sts::123456789012:assumed-role/acme-Worker-my-website-test-DeployServiceRole/AWSCodeBuild-bbd32a55 ASNF4YJCAHYN6TT3 REST.PUT.OBJECT test/public/docs/use-cases/index.html "PUT /test/public/docs/use-cases/index.html HTTP/1.1" 200 - - 17476 54 17 "-" "aws-cli/2.34.11 md/awscrt#0.31.2 ua/2.1 os/linux#4.14.355-280.714.amzn2.x86_64 md/arch#x86_64 lang/python#3.13.11 md/pyimpl#CPython exec-env/AWS_ECS_EC2 m/b,E,W,G,Z cfg/retry-mode#standard md/installer#exe md/distrib#amzn.2023 md/prompt#off md/command#s3.sync" - 0e...B4lA= SigV4 TLS_AES_128_GCM_SHA256 AuthHeader acme-my-website-origin-123456789012-us-east-2-an.s3.us-east-2.amazonaws.com TLSv1.3 - - us-east-2
+```
+
+In this example you'll see the first line demonstrates access from CloudFront. The second line demonstrates access from the CodeBuild stage during deployment.
+
+Logs are useful for troubleshooting and security, and should be retained for a specified amount of time as required by law or organizational guidelines.
+
+The logs are also most useful when they can be queried using [Amazon Athena](https://aws.amazon.com/athena/).
+
+To utilize logging you will need to:
+
+1. Set up a logging storage bucket (`config.py storage` and choose `template-storage-s3-access-logs`)
+2. Configure your `storage` and `network` stacks to send logs to the logging bucket.
+
+You can examine the [logging storage template](https://github.com/63Klabs/atlantis-sam-templates/blob/main/templates/v2/storage/template-storage-s3-access-logs.yml) on the Atlantis SAM Templates GitHub repository.
+
+#### CloudFront Cache Invalidation
+
+CloudFront acts as a CDN (Content Delivery Network) wich caches your pages so they are able to be quickly accessed by a global audience.
+
+If you have experienced caching behavior before, you know that it can pose issues when content is updated and the cache has not yet expired. To overcome this, CloudFront allows cache invalidation requests.
+
+Ideally you want to invalidate only the content that has been updated. 
+
+One of the methods to do this is to use S3 Events and send the context of the event (what object was added, modified, deleted) through a process that will submit an invalidation request to CloudFront.
+
+Luckily the process to accomplish this is ready to deploy using the [Serverless CloudFront Cache Invalidation](https://github.com/63Klabs/atlantis-starter-03-serverless-cloudfront-cache-invalidation) available as an application starter.
+
+To utilize the cache invalidator you will need to:
+
+1. Have a site infrastructure set up (repo, pipeline, storage, network)
+2. Install the cache invalidator application (`create_repo.py` and choose Starter 03 `serverless-cloudfront-cache-invalidation` to seed the repository. Then be sure to perform the config and deploy steps)
+3. Configure your site storage stack to send events to the invalidator
+4. Configure your site network stack to accept invalidation requests
+
+Follow the instructions for the Cache Invalidator to ensure the configurations meet your needs.
+
+> Note: The invalidator only works with `PROD` instances (`beta`, `prod`, etc). By default the `network` stack does not perform caching for non-`PROD` environments so you will not see any activity on a `test` branch.
+
 ## 8. Clean-Up
 
 To avoid ongoing charges to your AWS account, delete the resources created in this tutorial.
@@ -323,5 +390,5 @@ Congratulations! You have completed Tutorial #03! You have successfully deployed
 
 You can now use this knowledge to deploy more complex applications and services using the same principles and techniques.
 
-- [Next Tutorial: Tutorial #2: Advanced API Gateway and Lambda using Cache-Data (Node)](./../02-advanced-api-gateway-lambda-cache-data-node/README.md)
+- [Next Tutorial: Tutorial #04: Atlantis SAM Config Scripts In-Depth](../04-atlantis-sam-config-scripts-in-depth/README.md)
 - [All Tutorials](../../README.md)
