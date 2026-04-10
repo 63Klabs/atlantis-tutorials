@@ -173,7 +173,7 @@ graph TB
     main -->|triggers| pipe_beta
     main -->|triggers| pipe_prod
 
-    subgraph s3["S3 Origin Bucket<br/><i>Shared across stages — No public access</i><br/>acme-my-website-origin-{AccountId}-{Region}-an"]
+    subgraph s3["S3 Origin Bucket <i>Shared across stages — No public access</i> acme-my-website-origin-{AccountId}-{Region}-an"]
         s3_test["test/public/"]
         s3_beta["beta/public/"]
         s3_prod["prod/public/"]
@@ -183,7 +183,7 @@ graph TB
     pipe_beta -->|"aws s3 sync dist<br/>→ s3://{bucket}/beta/public/"| s3_beta
     pipe_prod -->|"aws s3 sync dist<br/>→ s3://{bucket}/prod/public/"| s3_prod
 
-    subgraph cdn["CloudFront Distributions<br/><i>Per Stage — OAC Access to S3</i>"]
+    subgraph cdn["CloudFront Distributions <i>Per Stage — OAC Access to S3</i>"]
         cf_test["acme-my-website-test<br/>CloudFront Distribution<br/><i>CachingDisabled</i>"]
         cf_beta["acme-my-website-beta<br/>CloudFront Distribution"]
         cf_prod["acme-my-website-prod<br/>CloudFront Distribution"]
@@ -193,7 +193,7 @@ graph TB
     s3_beta -.->|OAC| cf_beta
     s3_prod -.->|OAC| cf_prod
 
-    subgraph dns["Route 53 / Custom Domains<br/><i>Optional</i>"]
+    subgraph dns["Route 53 / Custom Domains <i>Optional</i>"]
         dns_test["my-website-test.example.com"]
         dns_beta["my-website-beta.example.com"]
         dns_prod["my-website.example.com"]
