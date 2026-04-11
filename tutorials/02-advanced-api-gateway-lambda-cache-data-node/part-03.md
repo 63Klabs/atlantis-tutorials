@@ -294,11 +294,11 @@ Then test using `curl`:
 curl -X GET "https://your-api-gateway-url/api/8ball"
 ```
 
-## 2. Implement a service using caching
+## 2. Implement a service using Cache Data Access Object (Games)
 
 TODO
 
-## 3. Implement a route, controller, and view that brings two services together
+## 3. Implement a Route, Controller, and View that brings two services together
 
 Now let's create a comprehensive controller that demonstrates how to coordinate multiple services and present unified responses. This controller will showcase integration patterns for combining different types of data services.
 

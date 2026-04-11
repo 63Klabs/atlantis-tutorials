@@ -329,7 +329,7 @@ try {
 }
 ```
 
-**Monitoring and Debugging:**
+### Monitoring and Debugging
 
 1. **Performance Tracking**: Use timers for all major operations:
 ```javascript

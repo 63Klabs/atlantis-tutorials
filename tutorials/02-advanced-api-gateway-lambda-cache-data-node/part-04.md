@@ -123,7 +123,7 @@ Lambda Insights automatically collects and displays several critical metrics:
    - View aggregated metrics across all your Lambda functions
    - Use filters to focus on specific functions or time periods
 
-## 3. Monitor performance using CloudWatch Dashboards
+## 3. Monitor using CloudWatch Dashboards
 
 The atlantis-starter-02 template includes a comprehensive CloudWatch dashboard that's automatically created for PROD environments:
 
@@ -278,7 +278,7 @@ CloudWatchDashboard:
 - Check region consistency across widgets
 - Ensure proper JSON formatting for custom widgets
 
-## 3. Create Alarms and Rollbacks
+## 4. Create Alarms and Rollbacks
 
 CloudWatch Alarms provide automated monitoring and alerting for your serverless application, while AWS SAM's gradual deployment features enable automatic rollbacks when issues are detected. The atlantis-starter-02 template implements both capabilities to ensure reliable deployments and rapid issue detection.
 
@@ -335,7 +335,7 @@ graph TD
     H --> J[Revert to Previous Version]
 ```
 
-## 4. Create unit tests and automate pre-deployment testing
+## 5. Create Tests
 
 Unit testing is a critical component of maintaining reliable serverless applications. The atlantis-starter-02 template includes a comprehensive testing framework using Jest that automatically runs during the build process to catch issues before deployment.
 
@@ -408,7 +408,7 @@ expect(result).to.have.property('items').that.is.an('array');
 
 This comprehensive unit testing approach ensures that your serverless application components are thoroughly validated before deployment, catching issues early in the development cycle and maintaining code quality as your application evolves.
 
-## 5. Automated Testing Strategies
+## 6. Automated Testing Strategies
 
 Automated testing in serverless applications involves multiple layers: pre-deployment testing during the build process, and post-deployment testing to validate the live environment. The atlantis-starter-02 template implements comprehensive automated testing strategies that ensure code quality and system reliability.
 
@@ -508,7 +508,7 @@ phases:
 
 This comprehensive automated testing strategy ensures that your serverless application is thoroughly validated at every stage of the deployment pipeline, from code commit to production deployment, maintaining high quality and reliability standards.
 
-## 6. Clean Up
+## 7. Clean Up
 
 To avoid ongoing charges to your AWS account, delete the resources created in this tutorial.
 

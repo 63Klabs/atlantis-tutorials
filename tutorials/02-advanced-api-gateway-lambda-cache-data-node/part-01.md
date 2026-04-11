@@ -5,7 +5,7 @@
 
 Refer to the README in the app starter GitHub repository above for an overview of the code.
 
-## 1. Seed repository and create pipeline
+## 1. Seed Repository and Create Pipeline
 
 Using the `create_repo.py` script in your organization's SAM Config repository, create and seed the repository with application starter 02.
 
@@ -190,27 +190,7 @@ aws lambda get-function-configuration --function-name FUNCTION_NAME | jq '.Envir
 
 You can also view these values through the AWS Web console by going to Lambda, selecting the Lambda function, and opening the Configuration tab, and clicking on Environment Variables from the left-hand side.
 
-## 3. Check endpoint and cache
-
-Going back to your application endpoint, hit refresh in the browser a few times. You should notice that while the first request took a second or two, the following requests are much shorter. This is because upon your first request the cache had to load from the original source. Subsequent requests only need to get the data from DynamoDb.
-
-In the web console go to the Lambda Execution logs in CloudWatch. (There is a link in your application stacks outputs section.)
-
-You'll notice at the very start of the logs is a `COLDSTART` indicator. You'll also notice log information about what actions your application took to fulfill the request to your browser. Some logs will include cache access information. You'll notice on the first request there wasn't a cache so it had to get it from the original source.
-
-You'll also notice a final response log that gives information about the request and the response.
-
-Next, we'll check out the data in the DynamoDb table. 
-
-> Note: You may not have access to the table to view the data. If you do not have access to actually see that the cache exists, please just take my word, and your CloudWatch logs entry, as proof that the data exists.
-
-You can get the link to the DynamoDb table either from the Cache-Data storage stack output section or by heading to DynamoDb in the web console and searching for `<prefix>-cache-data-CacheData`
-
-When you access the table you can examine the table info and click on Explore table items. 
-
-When you explore table items you'll see the cache records. If you click into the records you can examine the meta data, and that the data itself is encrypted.
-
-## 3. Understanding the components of the application template
+## 3. Identify Components of the Application Template
 
 Let's step back a moment and explore the application resources by examining the template.
 
@@ -469,7 +449,7 @@ The outputs section provides quick access to useful information about the stack,
 
 Learn more: [AWS CloudFormation Templates: Outputs Section](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html)
 
-## 5. Identify the components of build process
+## 4. Identify the Components of the Build Process
 
 As mentioned in previous tutorials, the `buildspec.yml` file executes commands to support deployment of your application.
 
@@ -498,7 +478,7 @@ For example, in the `buildspec.yml` file you are using in this tutorial, the fol
 11. Sets the artifacts directory
 12. Sets the cache directory
 
-### Secure secrets using SSM Parameter Store
+### Secure Secrets Using SSM Parameter Store
 
 This application utilizes AWS SSM Parameter store to securely manage secrets such as encryption and API keys.
 
@@ -522,7 +502,7 @@ Learn more: [AWS Documentation: AWS Systems Manager Parameter Store](https://doc
 
 > Note: While you can store non-secret values in SSM Parameter Store, it may take a few extra milliseconds to initialize your functions after a Cold Start to obtain these values. You should only store non-secret values in Parameter Store if 1. You expect regular updates to the value outside of deployments or 2. Other applications need access (and you expect regular updates to the value--otherwise just use a stack export or other means.)
 
-### Installs and scripts
+### Installs and Scripts
 
 As mentioned when we explored the steps performed in the buildspec, we perform a series of installs and script executions.
 
