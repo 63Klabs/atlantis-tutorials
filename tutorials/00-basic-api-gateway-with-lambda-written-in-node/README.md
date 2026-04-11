@@ -569,7 +569,7 @@ The delete script is now ready to be ran from the SAM config repository:
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/delete.py pipeline acme py8ball-adv beta --profile ACME_DEV
+./cli/delete.py pipeline acme py8ball-adv beta --profile YOUR_PROFILE
 ```
 
 You will have the chance to either retain the stage's environment settings in the `samconfig` file for later re-deployment, or to delete it completely. Once all stage environments of a `samconfig` file are deleted the file and directory for that project is also deleted.

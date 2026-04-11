@@ -30,8 +30,6 @@ With all of that out of the way, let's get started!
 
 ## Setting Up Work Environment
 
-### Development Environment
-
 The following must be installed on your development environment:
 
 - [Python >3.12](https://www.python.org/downloads/)
@@ -41,18 +39,17 @@ The following must be installed on your development environment:
 - [AWS SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
 - [GitHub CLI](https://cli.github.com/) (If using GitHub repositories)
 
-Bash commands to check on Linux or Mac:
+Bash commands to check installation:
 
 ```bash
-if [ $(command -v python3) ]; then python3 --version; else echo "python3 - NOT INSTALLED"; fi &&
-if [ $(command -v pip) ]; then pip --version; else echo "pip - NOT INSTALLED"; fi &&
-if [ $(command -v git) ]; then git --version; else echo "git - NOT INSTALLED"; fi &&
-. ~/.nvm/nvm.sh && # since it is a shell script, we need to make it available here
-if [ $(command -v nvm) ]; then echo "nvm $(nvm --version)"; else echo "nvm - NOT INSTALLED"; fi &&
-if [ $(command -v node) ]; then echo "node $(node --version)"; else echo "node - NOT INSTALLED"; fi &&
-if [ $(command -v aws) ]; then aws --version; else echo "aws - NOT INSTALLED"; fi &&
-if [ $(command -v sam) ]; then sam --version; else echo "sam - NOT INSTALLED"; fi &&
-if [ $(command -v gh) ]; then gh --version; else echo "gh - NOT INSTALLED"; fi
+python3 --version # or python --version
+pip --version
+git --version
+nvm --version
+node --version
+aws --version
+sam --version
+gh --version # If using GitHub repositories
 ```
 
 I personally recommend running Ubuntu >24 on a virtual environment using [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install) or [UTM (Mac)](https://mac.getutm.app/), but you do you!

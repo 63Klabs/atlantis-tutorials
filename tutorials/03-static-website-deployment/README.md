@@ -339,13 +339,13 @@ Follow the instructions for the Cache Invalidator to ensure the configurations m
 
 To avoid ongoing charges to your AWS account, delete the resources created in this tutorial.
 
-> Note: This step is optional and is dependent upon your user permissions and whether or not you wish or are required to delete the stacks created in this tutorial. It is recommended, for practice and if you have the proper permissions, to delete at least one of your stages. This helps enforce your knowledge and you can always go through the steps of creating and deploying the stage later. That's the nice thing about automation!
+> Note: This step is optional and is dependent upon your user permissions and whether or not you wish or are required to delete the stacks created in this tutorial. It is recommended, for practice and if you have the proper permissions, to delete your "PROD" (beta and prod) stages. This helps reduce cost and re-enforce your knowledge of stack management. You can always go through the steps of creating and deploying the stage later. That's the nice thing about automation!
 
 The `delete.py` script is provided to perform clean-up operations in proper order.
 
-As the accidental deletion of stacks can be devastating, the delete script requires several confirmation steps.
-
 You will be required to provide the ARN for each stack you delete. You may obtain these from the Stack Info tab in the CloudFormation web console.
+
+As the accidental deletion of stacks can be devastating, the delete script requires several confirmation steps.
 
 We will delete:
 
@@ -360,7 +360,7 @@ We will delete:
 
 > Proceed with caution! Double check your work and make sure you are deleting the correct stack!
 
-There are 2 manual steps that need to take place **ON EACH STACK** prior to running the delete script. Some organizations may restrict who can perform these steps to ensure proper checks and balances.
+There are 2 manual steps that need to take place **ON THE PIPELINE AND APPLICATION STACKS** prior to running the delete script. Some organizations may restrict who can perform these steps to ensure proper checks and balances.
 
 1. Manually add a tag to the stack with the key `DeleteOnOrAfter` and a value of a date in `YYYY-MM-DD` format. (Add `Z` to end for UTC. Example `2026-07-09Z`). This can be done using the AWS CLI:
   - `aws resourcegroupstaggingapi tag-resources --resource-arn-list "arn:aws:cloudformation:region:account:stack/stack-name/stack-id" --tags DeleteOnOrAfter=YYYY-MM-DD --profile your-profile`

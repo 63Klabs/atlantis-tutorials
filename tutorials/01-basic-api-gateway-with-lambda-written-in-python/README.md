@@ -220,7 +220,7 @@ Utilize environment variables to determine execution paths for `PROD` and `TEST`
 
 To avoid ongoing charges to your AWS account, delete the resources created in this tutorial.
 
-> Note: This step is optional and is dependent upon your user permissions and whether or not you wish or are required to delete the stacks created in this tutorial. It is recommended, for practice and if you have the proper permissions, to delete at least one of your stages. This helps enforce your knowledge and you can always go through the steps of creating and deploying the stage later. That's the nice thing about automation!
+> Note: This step is optional and is dependent upon your user permissions and whether or not you wish or are required to delete the stacks created in this tutorial. It is recommended, for practice and if you have the proper permissions, to delete your "PROD" (beta and prod) stages. This helps reduce cost and re-enforce your knowledge of stack management. You can always go through the steps of creating and deploying the stage later. That's the nice thing about automation!
 
 The `delete.py` script is provided to perform clean-up operations in proper order.
 
@@ -245,7 +245,7 @@ The delete script is now ready to be ran from the SAM config repository:
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/delete.py pipeline acme py8ball-adv beta --profile ACME_DEV
+./cli/delete.py pipeline acme py8ball-adv beta --profile YOUR_PROFILE
 ```
 
 You will have the chance to either retain the stage's environment settings in the `samconfig` file for later re-deployment, or to delete it completely. Once all stage environments of a `samconfig` file are deleted the file and directory for that project is also deleted.
