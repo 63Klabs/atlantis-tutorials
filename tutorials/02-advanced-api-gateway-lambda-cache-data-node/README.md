@@ -49,14 +49,14 @@ By the end of this tutorial you will be able to deploy a production-ready applic
    3. Controllers
    4. Services
    5. Views and Utilities
-   6. Models
-   7. Responses
-3. Dive deeper into controllers, services, models, and views
-   1. Implement a basic service with a direct call to an endpoint with no caching (8 Ball)
-   2. Implement a service using Cache Data Access Object (Games)
-   3. Create a Controller and View utilizing a data service
 
-### Part III Objectives: Monitoring and Performance
+### Part III Objectives: Dive deeper into controllers, services, models, and views
+
+1. Implement a basic service with a direct call to an endpoint with no caching (8 Ball)
+2. Implement a service using Cache Data Access Object (Games)
+3. Create a Controller and View utilizing a data service
+
+### Part IV Objectives: Monitoring and Performance
 
 1. Trace logs using X-Ray
 2. Monitor performance using Lambda Insights and CloudWatch Dashboards
@@ -73,3 +73,4 @@ By the end of this tutorial you will be able to deploy a production-ready applic
 1. [Part I](./part-01.md)
 2. [Part II](./part-02.md)
 3. [Part III](./part-03.md)
+4. [Part IV](./part-04.md)
