@@ -90,7 +90,7 @@ Move into advanced concepts as you explore Atlantis templates and scripts.
 3. [Tutorial #03: Deploying a Static Website](./tutorials/03-static-website-deployment/README.md)
 4. [Tutorial #04: Atlantis SAM Config Scripts In Depth](./tutorials/04-atlantis-sam-config-scripts-in-depth/README.md)
 5. [Tutorial #05: Run CodeBuild on a Schedule for Operations](./tutorials/05-run-codebuild-on-a-schedule-for-operations/README.md)
-6. [Tutorial #06: Implementing @63klabs/cache-data in a Web Service](./tutorials/06-implementing-cache-data/README.md)
+6. [Tutorial #06: Advanced @63klabs/cache-data Implementation](./tutorials/06-advanced-cache-data-implementation/README.md)
 7. [Tutorial #07: Using the Atlantis MCP Server for AI-Assisted Development](./tutorials/07-using-the-atlantis-mcp-server/README.md)
 8. [Tutorial #08: Atlantis SAM Templates In-Depth](./tutorials/08-atlantis-sam-templates-in-depth/README.md)
 9. [Tutorial #09: Creating Custom Atlantis Compatible Applications](./tutorials/09-creating-custom-atlantis-compatible-applications/README.md)
