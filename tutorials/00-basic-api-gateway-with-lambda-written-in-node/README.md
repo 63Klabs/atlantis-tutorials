@@ -544,7 +544,7 @@ You'll receive the greatest benefits by turning off alarms, dashboards, and log 
 
 To avoid ongoing charges to your AWS account, delete the resources created in this tutorial.
 
-> Note: This step is optional and is dependent upon your user permissions and whether or not you wish or are required to delete the stacks created in this tutorial. It is recommended, for practice and if you have the proper permissions, to delete at least one of your stages. This helps with practice and you can always go through the steps of creating and deploying the stage later. That's the nice thing about automation!
+> Note: This step is optional and is dependent upon your user permissions and whether or not you wish or are required to delete the stacks created in this tutorial. It is recommended, for practice and if you have the proper permissions, to delete your "PROD" (beta and prod) stages. This helps reduce cost and re-enforce your knowledge of stack management. You can always go through the steps of creating and deploying the stage later. That's the nice thing about automation!
 
 The `delete.py` script is provided to perform clean-up operations in proper order.
 
