@@ -53,28 +53,30 @@ phases:
 
   pre_build:
     commands:
+
+      # NOTE: NODE_ENV is set to "production", so we need --include=dev when working with site generators
       
       # Application Environment: Install NPM dependencies needed for application environment
       - ls -l -a
       - cd my-website
-      - npm install --production
+      - npm install --include=dev
 
       # FAIL the build if npm audit has vulnerabilities it can't fix
       # Perform a fix to move us forward, then check to make sure there were no unresolved high fixes
-      - npm audit fix --force
+      - npm audit fix --force --include=dev
       - npm audit --audit-level=high
       
   build:
     commands:
 
-	  - npm run build
+    - npm run build
 
-	  # S3_STATIC_HOST_BUCKET and STAGE_ID are environment variables in our CodeBuild deployment
-	  - aws s3 sync dist "s3://${S3_STATIC_HOST_BUCKET}/${STAGE_ID}/public/" --delete
+    # S3_STATIC_HOST_BUCKET and STAGE_ID are environment variables in our CodeBuild deployment
+    - aws s3 sync dist "s3://${S3_STATIC_HOST_BUCKET}/${STAGE_ID}/public/" --delete
 
-      # list files in the build
-	  - cd dist # sometimes build/
-      - ls -l -a
+    # list files in the build
+    - cd dist # sometimes build/
+    - ls -l -a
 
 # add cache
 cache:
@@ -120,8 +122,9 @@ From the SAM Config repository:
 
 ```bash
 ./cli/config.py pipeline acme my-website test --profile YOUR_PROFILE
-# - Use CodeBuild Only Pipeline
-# - For Static Host bucket use the S3 bucket name
+# - Template: template-pipeline-build-only
+# - S3StaticHostBucket: (use the S3 bucket name from previous storage step)
+# - BuildSpec: my-website/buildspec.yml
 ./cli/deploy.py pipeline acme my-website test --profile YOUR_PROFILE
 ```
 
@@ -137,13 +140,13 @@ From the SAM Config repository:
 
 ```bash
 ./cli/config.py network acme my-website test --profile YOUR_PROFILE
-# - There are a lot of parameters, for most you will accept the defaults
-# - Use S3 Bucket Origin Domain from storage output
-# - A custom domain for Route53 is optional, you can just use the provided CloudFront domain for the tutorial and development
+# - Template: template-network-route53-cloudfront-s3-apigw
+# - There are a lot of parameters, for now, accept the defaults except for:
+# - S3OriginDomainName: (Use the S3 Origin Domain Name output from your Storage stack)
 ./cli/deploy.py network acme my-website test --profile YOUR_PROFILE
 ```
 
-From the output section you should see the CloudFront distribution domain. Follow the link and you should see your site.
+After the deployment completes, you should see the CloudFront distribution domain in the stack Outputs. Follow the link and you should see your site.
 
 ## 5. Add `beta` and `prod`
 
