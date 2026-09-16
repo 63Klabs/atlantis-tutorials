@@ -35,21 +35,28 @@ We will utilize an app starter and scripts in the SAM Config repository to:
 
 > If you have not yet acquainted yourself with the SAM Config Repository Documentation for Developers please do so as it provides helpful information about the scripts contained within.
 
-We'll start by using your organization's SAM Config Repository (make sure it is cloned and most recent changes pulled) to your machine.
+> The SAM config repository is a central location within your organization's AWS account to store and manage storage and pipeline configurations. Most projects start there to seed the project/application repository and create deployment pipelines.
+
+We'll start by **using your organization's SAM Config Repository** (make sure it is cloned and most recent changes pulled) to your machine.
 
 ```bash
 # Perform these commands from your organization's SAM Config Repository
 git pull
-./cli/create_repo.py advanced-8-ball --profile your-profile-if-not-default
+```
+
+Now we will create a repository and seed it with starter code using the `create_repo.py` command. (Be sure to replace `USERNAME` so you can keep track of which one is yours in shared environments. Replace `default` profile with a different login profile if assigned.)
+
+```bash
+./cli/create_repo.py USERNAME-advanced-8-ball --profile default
 ```
 
 Choose `00-basic-apigw-lambda-nodejs.zip` from the prompt.
 
 ## 2. Repository Configuration
 
-Go to GitHub or the AWS CodeCommit Console and explore the repository. The `main` and `test` branches will be empty, and your code will be in the `dev` branch.
+Go to GitHub or the AWS CodeCommit Console and explore the repository. The `main` branch will be empty, and your code will be in the `dev` and `test` branches.
 
-> The tutorials will use the `dev-test-main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](../default-git-branch-workflow.md)
+> The tutorials will use the `dev->test->main` branch merge strategy to get code from development to production (`main` branch). For more information see [Default Git Branch Workflow](../default-git-branch-workflow.md)
 
 ### CodeCommit
 
@@ -59,7 +66,84 @@ To view your resource tags go to your repository settings and select the "Reposi
 
 Typical tags you will see are "CostCenter," "Creator," "Department," and "Owner" along with other tags your organization has configured for repository initialization.
 
-## 3. Clone New Repository
+## 3. Configure a `test` Pipeline in the SAM Config repository using `config.py pipeline`
+
+Go back to the same terminal window you used to `create_repo` from the SAM config repository.
+
+We will use the `config.py` script which will walk through configuring an AWS CodePipeline that will trigger a deployment when code is pushed to the `test` branch.
+
+Use the `-h` option for information about the script including parameters, named parameters, and flags.
+
+```bash
+./cli/config.py -h
+```
+
+Note that if you are not using the `default` AWS profile, you will need to use the `--profile` option.
+
+We will use `adv-8-ball` as our `ProjectId` argument. Replace `your-prefix` and `your-profile` with your own.
+
+```bash
+# Perform this command in the SAM Config Repo
+./cli/config.py pipeline PREFIX INITIALS-adv-8-ball test --profile default
+```
+
+When prompted for a template, choose `template-pipeline.yml` (or `template-pipeline-github.yml` for GitHub).
+
+Answer the template parameter prompts. If you need to view the description enter `?`. Most often you can accept the defaults.
+
+If you make any mistakes you can continue answering the prompts and re-run the script to enter new values, or quit the script without saving by entering `^`. 
+
+For additional information about the prompts and their values, refer to SAM Config Repo Documentation for Developers.
+
+The script will ask if you want to deploy right away. We will choose not to at this time `n` and run the `deploy` script separately.
+
+Also, you will be prompted to commit your changes. Unless you have a valid reason, you should always commit your changes to the SAM configuration repository so that the most current configuration is captured via version control.
+
+After completing the prompts, the script will display the command to deploy. We'll use this when deploying.
+
+```text
+Deploy commands are saved in the samconfig file for later reference. 
+Since the template is in S3, 'sam deploy' will NOT work. 
+Use ./cli/deploy.py instead 
+./cli/deploy.py pipeline acme adv-8-ball test --profile YOUR_PROFILE 
+```
+
+## 4. Deploy the `test` Pipeline from the SAM Config repository using `deploy.py pipeline`
+
+Copy, paste and execute the deploy command from the config output.
+
+```bash
+# Perform this command in the SAM Config Repo
+./cli/deploy.py pipeline PREFIX INITIALS-adv-8-ball test --profile default
+```
+
+Since the script is executing `sam deploy` (or `cloudformation`) in the background, you will see the familiar `deploy` information and (if you set confirm to `true`) prompt to execute the changes.
+
+If the `deploy.py` script performs `deploy` using the AWS CLI in the background, why not just do it directly? 
+
+Well, we'll discuss the [limitations of `samconfig`](../atlantis-formatted-samconfig.md) later, but for now, just know that you can't point to a template in S3 when using `samconfig` files. The script downloads the template from S3 to a local temporary directory and  then performs the `sam deploy` using the local copy.
+
+The good news is, you don't need to remember what happens in the background. The `config` and `deploy` scripts do a lot of work in the background to manage your pipeline infrastructure so you don't have to.
+
+## 5. Examine the Pipeline and CloudFormation process
+
+While the CloudFormation deployment is executing in your terminal, you can also open the AWS Web Console and watch the CloudFormation stack process there.
+
+Go to the CloudFormation console and find your stack.
+
+Once stack creation is complete, you can go to the Outputs tab of the pipeline stack and use the Pipeline link to view the pipeline progress as it will kick off immediately upon stack completion.
+
+As you wait for the pipeline to finish, you can check the account of the email address you entered for `AlarmNotificationEmail` as you should have received an email requesting you to confirm a subscription to be notified of the pipeline status. This is helpful for being notified of deployments.
+
+## 6. Test the endpoint
+
+Once the pipeline has completed, you can go back to your terminal with the CloudFormation stack output or the CloudFormation stack in the console.
+
+Under the stack Output you will see Endpoint Test URL. Click on the link to make sure the application deployed correctly. You should see a standard prediction. (You can ask a Yes/No question prior to clicking on the link if you wish.)
+
+If it wasn't successful be sure to resolve any issues before continuing.
+
+## 7. Clone New Repository
 
 Go back to your terminal for the SAM Config repository and copy the URL in the confirmation message for "Clone URL (HTTPS)".
 
@@ -68,9 +152,15 @@ Open a new terminal window (we want to keep the SAM Config repository open) and 
 In the CLI, type `git clone` and paste the URL you copied.
 
 ```bash
-git clone https://the-git-url-you-copied
+git clone https://THE_GIT_URL_YOU_COPIED
 cd advanced-8-ball
 ```
+
+> Tip: If using VS Code or Kiro, once you `cd` into your repository's directory, you can use the `code .` or `kiro .` to open that workspace in a new window!
+
+> Caution: Always make sure you are in the right directory within your terminal! Use separate windows for each workspace!
+
+You'll notice the `main` branch is pretty empty.
 
 Check out the `dev` branch.
 
@@ -78,7 +168,9 @@ Check out the `dev` branch.
 git switch dev
 ```
 
-Inspect the `template.yml` file. You'll notice various sections including:
+>  Note: When using the Atlantis DevOps Platform, developers are responsible for the application infrastructure and code as well as configuring a deployment pipeline.
+
+Inspect the `application-infrastructure/template.yml` file. You'll notice various sections including:
 
 - Metadata
 - Parameters
@@ -101,102 +193,15 @@ The resources included are:
 
 To learn more about each resource template and the properties available, just perform a search for the resource type (for example, `AWS::Serverless::Api`).
 
-> Note that API Gateway logging is commented out as your account administrator will need to set up API Gateway logging at the account level first. Even if API Gateway logging is enabled, it is recommended for the first deploy to leave as-is so it isn't in the way of troubleshooting.
-
 So, as you can see with the alarms and logs, there is some level of observability and monitoring. In future tutorials and application starters we will have access to additional monitoring options. It is recommended that you keep going with the tutorials to learn more and implement those features for production workloads.
-
-We want to deploy the code as-is, so merge `dev` into `test`:
-
-```bash
-git switch test
-git merge dev
-git push
-```
-
-The code is now in test, but we don't yet have a pipeline set up.
-
-## 4. Configure a `test` Pipeline in the SAM Config repository using `config.py pipeline`
-
-In a separate terminal, access the SAM Configuration Repository.
-
-We will use the `config.py` script which will walk through configuring an AWS CodePipeline that will trigger a deployment when code is pushed to the `test` branch.
-
-> Note: During the configuration of the template parameters you will need information provided by your organization such as Prefix, Permissions Boundary ARN, Role Path, etc. Be sure you have it available.
-
-Use the `-h` option for information about the script including parameters, named parameters, and flags.
-
-```bash
-./cli/config.py -h
-```
-
-Note that if you are not using the `default` AWS profile, you will need to use the `--profile` option.
-
-We will use `adv-8-ball` as our `ProjectId` argument. Replace `your-prefix` and `your-profile` with your own.
-
-```bash
-# Perform this command in the SAM Config Repo
-./cli/config.py pipeline your-prefix adv-8-ball test --profile your-profile
-```
-
-When prompted for a template, choose `template-pipeline-github.yml` (or `template-pipeline.yml` for CodeCommit).
-
-Answer the template parameter prompts. If you need to view the description enter `?`. Most often you can accept the defaults.
-
-If you make any mistakes you can continue answering the prompts and re-run the script to enter new values, or quit the script without saving by entering `^`. 
-
-For additional information about the prompts and their values, refer to SAM Config Repo Documentation for Developers.
-
-After completing the prompts, the script will display the command to deploy. We'll use this when deploying.
-
-```text
-Deploy commands are saved in the samconfig file for later reference. 
-Since the template is in S3, 'sam deploy' will NOT work. 
-Use ./cli/deploy.py instead 
-./cli/deploy.py pipeline acme adv-8-ball test --profile YOUR_PROFILE 
-```
-
-Before continuing it is a good idea to commit your configuration changes to the SAM Configuration Repository. Typically all changes can be pushed to the `main` branch as there should only be one source of truth. Check with your organization's policies to confirm.
-
-```bash
-git add --all
-git commit -m "added test pipeline to adv-8-ball"
-git push
-```
-
-## 5. Deploy the `test` Pipeline from the SAM Config repository using `deploy.py pipeline`
-
-Copy, paste and execute the deploy command from the config output.
-
-```bash
-# Perform this command in the SAM Config Repo
-./cli/deploy.py pipeline your-prefix adv-8-ball test --profile your-profile
-```
-
-Since the script is executing `sam deploy` in the background you will see the familiar `sam deploy` information and (if you set confirm to `true`) prompt to execute the changes.
-
-If the `deploy.py` script performs `sam deploy` in the background, why not just do it directly? Well, we'll discuss the [limitations of `samconfig`](../atlantis-formatted-samconfig.md) later, but for now, just know that you can't point to a template in S3 when using `samconfig` files. The script downloads the template from S3 to a local temporary directory and  then performs the `sam deploy` using the local copy.
-
-## 6. Examine the Pipeline and CloudFormation process
-
-While the CloudFormation deployment is executing in your terminal, you can also open the AWS Web Console and watch the CloudFormation stack process there.
-
-Once stack creation is complete, you can go to the Outputs tab of the pipeline stack and use the Pipeline link to view the pipeline progress which will kick off immediately upon stack completion.
-
-As you wait for the pipeline to finish, you can check the account of the email address you entered for `AlarmNotificationEmail` as you should have received an email requesting you to confirm a subscription to be notified of the pipeline status. This is helpful for being notified of deployments.
-
-## 7. Test the endpoint
-
-Once the pipeline has completed, you can go back to your terminal with the CloudFormation stack output or the CloudFormation stack in the console.
-
-Under the stack Output you will see Endpoint Test URL. Click on the link to make sure the application deployed correctly. You should see a standard prediction. (You can ask a Yes/No question prior to clicking on the link if you wish.)
-
-If it wasn't successful be sure to resolve any issues before continuing.
 
 ## 8. Make changes and merge changes to test (to invoke the pipeline)
 
 Right now the 8 Ball only makes a very vague prediction. Let's move the logic to a separate script, add some lucky numbers, and a certainty value.
 
-In your `advanced-8-ball` repository, check out the `dev` branch:
+> Note: It is always recommended to allow your pipeline to do an initial deploy as a `Hello, World` to ensure everything is configured correctly. If you haven't checked the test endpoint yet, please do so (find the link the CloudFormation stack output section)
+
+Ensure you are in the `dev` branch of your `advanced-8-ball` repository:
 
 ```bash
 git switch dev
@@ -324,10 +329,10 @@ git push
 You can then check the CodePipeline console to see the progress, or utilize the terminal:
 
 ```bash
-aws codepipeline get-pipeline-state --name your-pipeline-name
+aws codepipeline get-pipeline-state --name YOUR_PIPELINE_NAME
 ```
 
-Replace `your-pipeline-name` with the name of your pipeline.
+Replace `YOUR_PIPELINE_NAME` with the name of your pipeline.
 
 If you need to get the name of your pipeline you can list available pipelines:
 
@@ -338,33 +343,25 @@ aws codepipeline list-pipelines
 To receive continuous status updates every 10 seconds:
 
 ```bash
-watch -n 10 "aws codepipeline get-pipeline-state --name your-pipeline-name"
+watch -n 10 "aws codepipeline get-pipeline-state --name YOUR_PIPELINE_NAME"
 ```
 
 After the pipeline has completed, refresh your endpoint in the browser to see the changes.
+
+> Note: While the Atlantis SAM configuration scripts perform a lot of automation, it is advised that you become familiar with many of the `aws` CLI commands that will assist you in monitoring and gathering information about your applications and stacks. Therefore, we will frequently use them and provide examples in tutorials.
 
 ## 10. Configure a `prod` Pipeline in the SAM Config repository
 
 Go back to the terminal for your SAM Configuration Repository to add a second pipeline. This one for deploying a separate production instance.
 
-We will again use `adv-8-ball` as our `ProjectId` argument but this time use `prod` as `StageId`. Replace `your-prefix` and `your-profile` with your own.
+We will again use `adv-8-ball` as our `ProjectId` argument but this time use `prod` as `StageId`. Replace `PREFIX` and `default` profile with your own.
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/config.py pipeline your-prefix adv-8-ball prod --profile your-profile
+./cli/config.py pipeline PREFIX INITIALS-adv-8-ball prod --profile default
 ```
 
-Since this will modify the SAM config file for your project, we will want to commit and push the changes to the SAM Config Repository:
-
-```bash
-git add --all
-git commit -m "added prod pipeline to adv-8-ball"
-git push
-```
-
-## 11. Deploy the `prod` Pipeline from the SAM Config repository
-
-Perform the same copy, paste, execute on the deploy.py command as before and deploy the stack. Watch the CloudFormation updates in the terminal or console.
+This time, when it asks if you want to deploy right away, choose `Y` (yes).
 
 Just as you did for the `test` pipeline, you will receive an email subscription confirmation for updates regarding the production pipeline execution. Be sure to check your email and confirm your subscription.
 
@@ -372,7 +369,7 @@ Once the CloudFormation is done you can monitor the Pipeline in the terminal or 
 
 ## 12. Perform a complete application deployment cycle from `dev` to `prod`
 
-Go back and check out the `dev` branch.
+Go back to your application repository and check out the `dev` branch.
 
 Let's add additional features to the endpoint such as dice rolls and card deals.
 
@@ -455,7 +452,7 @@ git merge test
 git push
 ```
 
-This time, as the code moves through the pipeline, you may notice that the CloudFormation stage takes longer than before.
+This time, as the code moves through the pipeline, you may notice that the CloudFormation stage takes longer than before. In fact, it won't show `complete` for about an hour.
 
 This is because production branches (`beta`, `stage`, `main`) typically use a _gradual_ deployment method which will be explained later.
 
@@ -499,7 +496,7 @@ If you are familiar with Node package dependencies, you know that there are depe
 
 Setting `NODE_ENV` to `development` on your local machine is fine, but by default the CodePipeline template sets the CodeBuild environment variable `NODE_ENV` to `production` as developer tools are not needed. Also, adding all the dev dependencies to your Lambda function takes up extra space and can prevent inspecting the Lambda code in the console.
 
-So remember, `NODE_ENV` is always set to `production` during deployments.
+So remember, `NODE_ENV` is always set to `production` during deployments via CodeBuild.
 
 Also, while the `test` branch and `test StageId` is named similar to `DEPLOY_ENVIRONMENT TEST`, the `DEPLOY_ENVIRONMENT PROD` can refer to any branch or `StageId` that should be _production-like_ for staging, beta testing, or production purposes. So a `PROD` environment can be assumed by `beta`, `stage`, `staging`, `main` or `prod` branches/stages.
 
@@ -521,7 +518,7 @@ Resources:
       Environment:
         Variables:
 		  NODE_ENV: !If [ IsProduction, "production",  "development"]
-          LOG_LEVEL: !If [ IsProduction, "INFO", "DEBUG"] # 0-2 (ERROR, WARN, INFO) for prod, 3-5 (MSG, DIAG, DEBUG) for non-prod
+          LOG_LEVEL: !If [ IsProduction, "INFO", "DEBUG"] # (ERROR, WARN, or INFO) for prod, (MSG, DIAG, or DEBUG) for non-prod
           DEPLOY_ENVIRONMENT: !Ref DeployEnvironment
           PARAM_STORE_PATH: !Ref ParameterStoreHierarchy
           LAMBDA_TIMEOUT_IN_SEC: !Ref FunctionTimeOutInSeconds # so we can calculate any external connection timeout in our code
@@ -534,11 +531,11 @@ The Lambda environment variable `DEPLOY_ENVIRONMENT` can be used to within your 
 
 ### Use Sparingly
 
-Traditionally development and test environments have utilized smaller memory and CPU size. While you could lower the memory on your Lambda function there is little need to do so as a Lambda function at rest incurs zero cost. Use this to your benefit so that you can run your code in a Lambda function that has the same memory size and speed as production.
+Traditionally, development and test environments have utilized smaller memory and CPU size. While you could lower the memory on your Lambda function there is little need to do so as a Lambda function at rest incurs zero cost. Use this to your benefit so that you can run your code in a Lambda function that has the same memory size and speed as production.
 
 Also, don't go overboard when turning on or off resources and features. The more complex your conditional resources become, the greater chance for error.
 
-You'll receive the greatest benefits by turning off alarms, dashboards, and log retention when not in production.
+You'll receive the greatest benefits by turning off alarms and dashboards, reducing log retention, and lowering any "at rest" costs when not in production.
 
 ## 14. Clean Up
 
@@ -569,7 +566,7 @@ The delete script is now ready to be ran from the SAM config repository:
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/delete.py pipeline acme py8ball-adv beta --profile YOUR_PROFILE
+./cli/delete.py pipeline PREFIX INITIALS-adv-8-ball test --profile YOUR_PROFILE
 ```
 
 You will have the chance to either retain the stage's environment settings in the `samconfig` file for later re-deployment, or to delete it completely. Once all stage environments of a `samconfig` file are deleted the file and directory for that project is also deleted.
