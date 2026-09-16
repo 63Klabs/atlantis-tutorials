@@ -17,25 +17,26 @@ By the end of this tutorial you will be able to create a repository and seed it 
 We will utilize an app starter and scripts in the SAM Config repository to:
 
 1. Create a repository seeded with our app starter using `create_repo.py`
-2. Examine the new repository and the branches
-3. Clone the New Repository
-4. Configure a `test` Pipeline in the SAM Config repository using `config.py pipeline`
-5. Deploy the `test` Pipeline from the SAM Config repository using `deploy.py pipeline`
-6. Examine the Pipeline and CloudFormation process
-7. Test the endpoint
+2. Examine the new repository configuration and resource tags
+3. Configure a `test` Pipeline in the SAM Config repository using `config.py pipeline`
+4. Deploy the `test` Pipeline from the SAM Config repository using `deploy.py pipeline`
+5. Examine the Pipeline and CloudFormation process
+6. Test the endpoint
+7. Clone the New Repository
 8. Make changes and merge changes to `test` (to invoke the pipeline)
 9. Watch a Pipeline through the CLI
-10. Configure a `prod` Pipeline in the SAM Config repository
-11. Deploy the `prod` Pipeline from the SAM Config repository
-12. Perform a complete application deployment cycle from `dev` to `prod`
-13. Deployment Strategies: `TEST` vs `PROD`
-14. Clean-Up
+10. Configure and deploy a `prod` Pipeline in the SAM Config repository
+11. Perform a complete application deployment cycle from `dev` to `prod`
+12. Deployment Strategies: `TEST` vs `PROD`
+13. Clean-Up
 
 ## 1. Create a Repository and Seed it Using `create_repo.py`
 
 > If you have not yet acquainted yourself with the SAM Config Repository Documentation for Developers please do so as it provides helpful information about the scripts contained within.
 
 > The SAM config repository is a central location within your organization's AWS account to store and manage storage and pipeline configurations. Most projects start there to seed the project/application repository and create deployment pipelines.
+
+> Note: This tutorial uses the Prefix `PREFIX` and profile `default`. Be sure to replace with your own organization's requirements. Also, when using a shared AWS account, it is best to replace `USER` with your username or initials to keep the account tidy. If you are using your personal AWS account, then you can drop `USER-` from the naming.
 
 We'll start by **using your organization's SAM Config Repository** (make sure it is cloned and most recent changes pulled) to your machine.
 
@@ -44,10 +45,10 @@ We'll start by **using your organization's SAM Config Repository** (make sure it
 git pull
 ```
 
-Now we will create a repository and seed it with starter code using the `create_repo.py` command. (Be sure to replace `USERNAME` so you can keep track of which one is yours in shared environments. Replace `default` profile with a different login profile if assigned.)
+Now we will create a repository and seed it with starter code using the `create_repo.py` command. (Be sure to replace `USER` so you can keep track of which one is yours in shared environments. Replace `default` profile with a different login profile if assigned.)
 
 ```bash
-./cli/create_repo.py USERNAME-advanced-8-ball --profile default
+./cli/create_repo.py USER-advanced-8-ball --profile default
 ```
 
 Choose `00-basic-apigw-lambda-nodejs.zip` from the prompt.
@@ -84,7 +85,7 @@ We will use `adv-8-ball` as our `ProjectId` argument. Replace `your-prefix` and 
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/config.py pipeline PREFIX INITIALS-adv-8-ball test --profile default
+./cli/config.py pipeline PREFIX USER-adv-8-ball test --profile default
 ```
 
 When prompted for a template, choose `template-pipeline.yml` (or `template-pipeline-github.yml` for GitHub).
@@ -114,7 +115,7 @@ Copy, paste and execute the deploy command from the config output.
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/deploy.py pipeline PREFIX INITIALS-adv-8-ball test --profile default
+./cli/deploy.py pipeline PREFIX USER-adv-8-ball test --profile default
 ```
 
 Since the script is executing `sam deploy` (or `cloudformation`) in the background, you will see the familiar `deploy` information and (if you set confirm to `true`) prompt to execute the changes.
@@ -358,7 +359,7 @@ We will again use `adv-8-ball` as our `ProjectId` argument but this time use `pr
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/config.py pipeline PREFIX INITIALS-adv-8-ball prod --profile default
+./cli/config.py pipeline PREFIX USER-adv-8-ball prod --profile default
 ```
 
 This time, when it asks if you want to deploy right away, choose `Y` (yes).
@@ -367,7 +368,7 @@ Just as you did for the `test` pipeline, you will receive an email subscription 
 
 Once the CloudFormation is done you can monitor the Pipeline in the terminal or console.
 
-## 12. Perform a complete application deployment cycle from `dev` to `prod`
+## 11. Perform a complete application deployment cycle from `dev` to `prod`
 
 Go back to your application repository and check out the `dev` branch.
 
@@ -456,7 +457,7 @@ This time, as the code moves through the pipeline, you may notice that the Cloud
 
 This is because production branches (`beta`, `stage`, `main`) typically use a _gradual_ deployment method which will be explained later.
 
-## 13. Deployment Strategies: `TEST` vs `PROD`
+## 12. Deployment Strategies: `TEST` vs `PROD`
 
 If you examine the application's CloudFormation template, you will notice conditionals based on whether the template parameter `DeployEnvironment` is set to `PROD` or `TEST`.
 
@@ -537,7 +538,7 @@ Also, don't go overboard when turning on or off resources and features. The more
 
 You'll receive the greatest benefits by turning off alarms and dashboards, reducing log retention, and lowering any "at rest" costs when not in production.
 
-## 14. Clean Up
+## 13. Clean Up
 
 To avoid ongoing charges to your AWS account, delete the resources created in this tutorial.
 
@@ -566,7 +567,7 @@ The delete script is now ready to be ran from the SAM config repository:
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/delete.py pipeline PREFIX INITIALS-adv-8-ball test --profile YOUR_PROFILE
+./cli/delete.py pipeline PREFIX USER-adv-8-ball test --profile YOUR_PROFILE
 ```
 
 You will have the chance to either retain the stage's environment settings in the `samconfig` file for later re-deployment, or to delete it completely. Once all stage environments of a `samconfig` file are deleted the file and directory for that project is also deleted.
@@ -579,7 +580,7 @@ Performing the delete does not delete the repository. Since the size of the repo
 
 Congratulations! You have completed Tutorial #0! You have successfully deployed a basic API Gateway with Lambda written in Node using an automated CI/CD pipeline. You have also learned about configuring and deploying various stage environments such as test, beta, and production using the Atlantis scripts.
 
-### A few notes going forward
+### A Few Notes
 
 While we spent some time setting up the project within the SAM Configuration repository, once a repository and its deployment pipelines are set up, you won't spend much time within this repository. The majority of a developer's time is spend pushing code to their project's repository and allowing the pipelines to perform the deployments automatically.
 
@@ -587,7 +588,7 @@ You'll only revisit the SAM configuration repository when scaffolding a new proj
 
 Also note that when you push code to a deployable branch, only the `*-application` CloudFormation stack will be updated. The `*-pipeline` stack only maintains the CodePipeline, not the application.
 
-While the application starter used in this tutorial deploys API Gateway backed by Lambda, you can remove API Gateway and/or Lambda, and replace it with any number of AWS resources such as Step Functions, Simple Queing Service (SQS), Event Schedules, additional Lambda functions, or S3 triggers. We'll explore this in the next tutorial.
+While the application starter used in this tutorial deploys API Gateway backed by Lambda, you can remove API Gateway and/or Lambda, and replace it with any number of AWS resources such as Step Functions, Simple Queuing Service (SQS), Event Schedules, additional Lambda functions, or S3 triggers.
 
 ### Next
 

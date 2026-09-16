@@ -26,30 +26,38 @@ By the end of this tutorial you will be able to identify the various stages of t
 
 ## 1. Seed repository and create pipeline
 
-> Note: This tutorial uses the Prefix `acme` and profile `YOUR_PROFILE`. Be sure to replace with your own organization's requirements. Also, if your organization requires you to add your username or name to the front of the repository name or ProjectID you may do so to keep the account tidy.
+> Note: This tutorial uses the Prefix `PREFIX` and profile `default`. Be sure to replace with your own organization's requirements. Also, when using a shared AWS account, it is best to replace `USER` with your username or initials to keep the account tidy. If you are using your personal AWS account, then you can drop `USER-` from the naming.
 
-Using the `create_repo` script in your organization's SAM Config repository, create and seed the repository with application starter number 2.
-
-```bash
-./cli/create_repo.py tutorial-py8ball-advanced --profile YOUR_PROFILE
-```
-
-Choose application starter 01 basic-apigw-lambda-py when prompted.
-
-Clone the repository to your local environment and merge the `dev` branch into the `test` branch.
-
-In the SAM Config repository, create the pipeline for your application.
+We'll start by **using your organization's SAM Config Repository** (make sure it is cloned and most recent changes pulled) to your machine.
 
 ```bash
-./cli/config.py pipeline acme py8ball-adv test --profile YOUR_PROFILE
+# Perform these commands from your organization's SAM Config Repository
+git pull
 ```
 
-Copy, paste and execute the deploy command from the config output.
+Now we will create a repository and seed it with starter code using the `create_repo.py` command. (Be sure to replace `USER` so you can keep track of which one is yours in shared environments. Replace `default` profile with a different login profile if assigned.)
 
 ```bash
-# Perform this command in the SAM Config Repo
-./cli/deploy.py pipeline acme py8ball-adv test --profile YOUR_PROFILE
+./cli/create_repo.py USER-py8ball-advanced --profile default
 ```
+
+Choose application starter `01 basic-apigw-lambda-py` when prompted.
+
+Once complete, create the pipeline for your application.
+
+```bash
+./cli/config.py pipeline PREFIX USER-py8ball-advanced test --profile default
+```
+
+When prompted for a template, choose `template-pipeline.yml` (or `template-pipeline-github.yml` for GitHub).
+
+Answer the template parameter prompts. If you need to view the description enter `?`. Most often you can accept the defaults.
+
+If you make any mistakes you can continue answering the prompts and re-run the script to enter new values, or quit the script without saving by entering `^`. 
+
+For additional information about the prompts and their values, refer to SAM Config Repo Documentation for Developers.
+
+Go ahead and accept deploying right away.
 
 After the pipeline has been created successfully, a link to the pipeline will be displayed in the Output. Follow the link to view the pipeline in the console. (You may need to log into the console first before following the link.)
 
@@ -144,11 +152,11 @@ Take some time to examine the scripts (located in the `build-scripts` directory)
 Create a simple Python script that prints out "Hello World":
 
 ```python
-# build-scripts/hello.py
+# application-infrastructure/build-scripts/hello.py
 print("Hello World")
 ```
 
-Make sure to place it in your `build-scripts` directory. Then add a command to your `buildspec.yml` file to execute it at the start of the `build` stage:
+Make sure to place it in your `application-infrastructure/build-scripts` directory. Then add a command to your `buildspec.yml` file to execute it at the start of the `build` stage:
 
 ```yaml
 phases:
@@ -212,6 +220,8 @@ It is important to note that the ability for CodeBuild to maintain a cache is no
 
 It is possible to have multiple buildspec files in a single repository, however it is discouraged. Having multiple buildspec files can lead to confusion and maintenance challenges. It is best practice to have a single buildspec file per repository to ensure clarity and consistency in the build process.
 
+> NOTE: If your application requires a "Post Deploy" stage, then a `buildspec-postdeploy` may be used, but again, only one per repository. But we won't get into that during this tutorial. Just know that it isn't an exception to the rule, just a flexible option. Stay away from pipeline-specific buildspecs of any type.
+
 Utilize environment variables to determine execution paths for `PROD` and `TEST` environments. This helps self-document any differences between prod and test environments.
 
 > While you may come across some tutorials or examples on the web that use `buildspec_prod.yml` and `buildspec_test.yml` it is best practice to maintain a single `buildspec.yml` file.
@@ -245,7 +255,7 @@ The delete script is now ready to be ran from the SAM config repository:
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/delete.py pipeline acme py8ball-adv beta --profile YOUR_PROFILE
+./cli/delete.py pipeline PREFIX USER-py8ball-advanced beta --profile default
 ```
 
 You will have the chance to either retain the stage's environment settings in the `samconfig` file for later re-deployment, or to delete it completely. Once all stage environments of a `samconfig` file are deleted the file and directory for that project is also deleted.
@@ -257,6 +267,8 @@ Performing the delete does not delete the repository. Since the size of the repo
 ## Summary
 
 Congratulations! You have completed Tutorial #1! You have successfully deployed a basic API Gateway with Lambda written in Python using an automated CI/CD pipeline. You have also inspected the pipeline stages and CodeBuild logs, and reviewed the buildspec.yml file.
+
+Just as mentioned in the previous tutorial, while the application starter deploys API Gateway backed by Lambda, you can remove API Gateway and/or Lambda, and replace it with any number of AWS resources such as Step Functions, Simple Queuing Service (SQS), Event Schedules, additional Lambda functions, or S3 triggers.
 
 You can now use this knowledge to deploy more complex applications and services using the same principles and techniques.
 
