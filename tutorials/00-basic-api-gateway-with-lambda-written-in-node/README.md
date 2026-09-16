@@ -579,5 +579,17 @@ Performing the delete does not delete the repository. Since the size of the repo
 
 Congratulations! You have completed Tutorial #0! You have successfully deployed a basic API Gateway with Lambda written in Node using an automated CI/CD pipeline. You have also learned about configuring and deploying various stage environments such as test, beta, and production using the Atlantis scripts.
 
+### A few notes going forward
+
+While we spent some time setting up the project within the SAM Configuration repository, once a repository and its deployment pipelines are set up, you won't spend much time within this repository. The majority of a developer's time is spend pushing code to their project's repository and allowing the pipelines to perform the deployments automatically.
+
+You'll only revisit the SAM configuration repository when scaffolding a new project, adding additional pipelines, changing a pipeline's configuration, upgrading a pipeline (if Atlantis releases a new pipeline template), or deleting a pipeline.
+
+Also note that when you push code to a deployable branch, only the `*-application` CloudFormation stack will be updated. The `*-pipeline` stack only maintains the CodePipeline, not the application.
+
+While the application starter used in this tutorial deploys API Gateway backed by Lambda, you can remove API Gateway and/or Lambda, and replace it with any number of AWS resources such as Step Functions, Simple Queing Service (SQS), Event Schedules, additional Lambda functions, or S3 triggers. We'll explore this in the next tutorial.
+
+### Next
+
 - [Next: Tutorial #1: Basic API Gateway with Lambda written in Python](../01-basic-api-gateway-with-lambda-written-in-python/README.md)
 - [All Tutorials](../../README.md)
