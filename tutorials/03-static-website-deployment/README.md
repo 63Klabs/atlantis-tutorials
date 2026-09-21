@@ -10,13 +10,17 @@
 From the SAM Config repository:
 
 ```bash
-./cli/create_repo.py your-repo-name --profile YOUR_PROFILE
+./cli/create_repo.py USER-tutorial-static-website --profile default
 # Choose 'None' for seeding
 ```
 
 Clone your repository, create a dev branch, and then scaffold it with React (or your framework of choice):
 
 ```bash
+cd WHERE_YOU_STORE_YOUR_REPOS
+git clone YOUR_REPOSITORY
+cd YOUR_REPO_DIRECTORY
+
 npm create vite@latest my-website -- --template react
 cd my-website
 npm install
@@ -93,8 +97,8 @@ The S3 Bucket will be shared among all your deployments for your project (`test`
 From the SAM Config repository:
 
 ```bash
-./cli/config.py storage acme my-website --profile YOUR_PROFILE
-./cli/deploy.py storage acme my-website --profile YOUR_PROFILE
+./cli/config.py storage PREFIX my-website --profile default
+./cli/deploy.py storage PREFIX my-website --profile default
 # Make note of the S3 bucket name AND S3 bucket domain
 ```
 
@@ -121,11 +125,11 @@ Now that we have S3 set up, we can set up the CI/CD pipeline to build and copy t
 From the SAM Config repository:
 
 ```bash
-./cli/config.py pipeline acme my-website test --profile YOUR_PROFILE
+./cli/config.py pipeline PREFIX my-website test --profile default
 # - Template: template-pipeline-build-only
 # - S3StaticHostBucket: (use the S3 bucket name from previous storage step)
 # - BuildSpec: my-website/buildspec.yml
-./cli/deploy.py pipeline acme my-website test --profile YOUR_PROFILE
+./cli/deploy.py pipeline PREFIX my-website test --profile default
 ```
 
 After the pipeline has deployed, use the Output link to see it in action. Check for any errors and follow along in the CodeBuild console as it builds and copies your site to S3.
@@ -139,11 +143,11 @@ We will now create the CloudFront Distribution that uses your bucket with the `t
 From the SAM Config repository:
 
 ```bash
-./cli/config.py network acme my-website test --profile YOUR_PROFILE
+./cli/config.py network PREFIX my-website test --profile default
 # - Template: template-network-route53-cloudfront-s3-apigw
 # - There are a lot of parameters, for now, accept the defaults except for:
 # - S3OriginDomainName: (Use the S3 Origin Domain Name output from your Storage stack)
-./cli/deploy.py network acme my-website test --profile YOUR_PROFILE
+./cli/deploy.py network PREFIX my-website test --profile default
 ```
 
 After the deployment completes, you should see the CloudFront distribution domain in the stack Outputs. Follow the link and you should see your site.
@@ -154,9 +158,16 @@ Go through the same steps above, this time creating a `beta` and `prod` deployme
 
 You may need to add a `beta` branch to your repository.
 
+```bash
+git switch test
+git pull
+git switch -c beta
+git push -u origin beta
+```
+
 ## 6. Architecture Overview
 
-Below is the final architecture diagram of what we build in this tutorial.
+Below is the final architecture diagram of what we built in this tutorial.
 
 ```mermaid
 graph TB
@@ -260,10 +271,9 @@ distid.cloudfront.net/
 ### 7.1 Deploy an API Behind CloudFront
 
 1. In the SAM Config repository, use the `create_repo.py` script to create a new serverless application repository seeding it with Atlantis Starter 00 Basic Node.js
-2. `clone` the repo to your machine and `merge` the `dev` branch into `test`, and `push`.
-3. Use `config.py pipeline` and `deploy.py pipeline` to create a pipeline for your `test` branch. You **must** name the project with the SAME `ProjectId` as your website project.
-4. After the pipeline has deployed, and you have checked that your application is reachable, re-configure and deploy the `network` stack.
-5. Use `config.py network` and `deploy.py network` to add the API Gateway ID to the `test` CloudDistribution.
+2. Use `config.py pipeline` and `deploy.py pipeline` to create a pipeline for your `test` branch. You **must** name the project with the SAME `ProjectId` as your website project.
+3. After the pipeline has deployed, and you have checked that your application is reachable, re-configure and deploy the `network` stack.
+4. Use `config.py network` and `deploy.py network` to add the API Gateway ID to the `test` CloudDistribution.
 
 Once the distribution has deployed, you should be able to access your endpoint using the distribution URL.
 
@@ -378,7 +388,7 @@ The delete script is now ready to be ran from the SAM config repository:
 
 ```bash
 # Perform this command in the SAM Config Repo
-./cli/delete.py pipeline acme my-website beta --profile YOUR_PROFILE
+./cli/delete.py pipeline PREFIX my-website beta --profile default
 ```
 
 You will have the chance to either retain the stage's environment settings in the `samconfig` file for later re-deployment, or to delete it completely. Once all stage environments of a `samconfig` file are deleted the file and directory for that project is also deleted.
