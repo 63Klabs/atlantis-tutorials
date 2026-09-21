@@ -1,8 +1,8 @@
-# Run CodeBuild on a Schedule for Operations
+# Run CodeBuild on a Schedule or Trigger for Operations
 
 > This tutorial is still under development. However, the basic structure is listed below. Please be advised that the content is short, may be missing, and may have inaccuracies or typos. If you would like to contribute updates, please submit an [issue via this repository on GitHub](https://github.com/63Klabs/atlantis-tutorials/issues). Be sure to include the page and what content should be added/updated. If you'd be willing to write a few sentences (or more, but be clear and succinct), please do. Thank you for your understanding.
 
-CodeBuild provides a managed service, a clean slate, ability to run a variety of scheduled scripts and commands without having to adapt them to run as a Lambda function.
+CodeBuild provides a managed service, a clean slate, ability to run a variety of scripts and commands without having to adapt them to run as a Lambda function.
 
 Data and file persistence can be maintained by:
 
@@ -11,7 +11,7 @@ Data and file persistence can be maintained by:
 - S3 File System mount
 - CLI or API calls
 
-If system persistence is not required, then CodeBuild is a good, lightweight, low-maintenance option and this application is meant to fill that need.
+If system persistence is not required, and you just need an occasional, temporary Linux container, then CodeBuild is a good, lightweight, low-maintenance option and this application is meant to fill that need.
 
 ## Deploy the Solution As-Is
 
