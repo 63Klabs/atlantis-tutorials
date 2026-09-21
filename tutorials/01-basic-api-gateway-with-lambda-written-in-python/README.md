@@ -38,7 +38,7 @@ git pull
 Now we will create a repository and seed it with starter code using the `create_repo.py` command. (Be sure to replace `USER` so you can keep track of which one is yours in shared environments. Replace `default` profile with a different login profile if assigned.)
 
 ```bash
-./cli/create_repo.py USER-py8ball-advanced --profile default
+./cli/create_repo.py USER-tutorial-py8ball-advanced --profile default
 ```
 
 Choose application starter `01 basic-apigw-lambda-py` when prompted.

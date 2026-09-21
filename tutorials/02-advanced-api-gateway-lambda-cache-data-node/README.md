@@ -8,10 +8,10 @@ An understanding of concepts outlined in previous tutorials is required.
 
 If you have not read through the [introductory README](../../README.md), or have not completed the [previous tutorials](../../README.md#tutorials), please do so before proceeding. Each tutorial builds on concepts from the previous and is not something to just "jump into."
 
-You will also need to ensure a CloudFormation stack named `<prefix>-cache-data-storage` exists as it is required for Application Starter #02. One easy way to check is to run the command from the CLI (replace 'YOUR_PROFILE' and 'acme'):
+You will also need to ensure a CloudFormation stack named `<prefix>-cache-data-storage` exists as it is required for Application Starter #02. One easy way to check is to run the command from the CLI (replace 'default' and 'PREFIX'):
 
 ```
-aws cloudformation list-exports --profile YOUR_PROFILE --query "Exports[?starts_with(Name, 'acme-CacheData')]"
+aws cloudformation list-exports --query "Exports[?starts_with(Name, 'PREFIX-CacheData')]" --profile default
 ```
 
 - **If it returns `[]`** then the stack does not exist and you will need to tell your instructor, supervisor, or account administrator and move on to the [next tutorial](../03-static-website-deployment/README.md).

@@ -10,31 +10,26 @@ Refer to the README in the app starter GitHub repository above for an overview o
 Using the `create_repo.py` script in your organization's SAM Config repository, create and seed the repository with application starter 02.
 
 ```bash
-./cli/create_repo.py tutorial-games-proxy --profile YOUR_PROFILE
+./cli/create_repo.py USER-tutorial-games-proxy --profile default
 ```
 
 Choose application starter 02 (`atlantis-starter-02-apigw-lambda-cache-data-nodejs`) when prompted.
-
-Clone the application's repository to your local environment and merge the `dev` branch into the `test` branch without making any changes.
 
 > When starting new projects it is a good idea to start off with known, working code and get the initial "Hello" deployment working before making changes.
 
 In the SAM Config repository, create the pipeline for your application.
 
 ```bash
-./cli/config.py pipeline acme games-proxy test --profile YOUR_PROFILE
+./cli/config.py pipeline PREFIX USER-games-proxy test --profile default
 ```
 
-Copy, paste and execute the deploy command from the config output.
-
-```bash
-# Perform this command in the SAM Config Repo
-./cli/deploy.py pipeline acme games-proxy test --profile YOUR_PROFILE
-```
+Go ahead and choose to perform the deploy operation when prompted.
 
 After the pipeline has been created successfully, a link to the pipeline will be displayed in the Output. Follow the link to view the pipeline in the console. (You may need to log into the console first before following the link.)
 
 Once your CloudFormation application stack has deployed, view the endpoint in your browser. You should see a list of games.
+
+You may then switch to a new terminal window, change directories, and clone your `USER-tutorial-games-proxy` repository.
 
 ## 2. Inspect Parameters and Environment Variables
 
@@ -57,8 +52,7 @@ D-->T[Pipeline Template Parameters]
 The pipeline template defines Environment Variables for use during the build process and additional parameters to pass to the application stack during deployment. These values may be direct parameter values that were passed into the pipeline template or other values.
 
 ```yaml
-# Relevant code from template-pipeline.yml
-# Full template: https://github.com/63Klabs/atlantis-cfn-template-repo-for-serverless-deployments/blob/main/templates/v2/pipeline/template-pipeline.yml
+# Relevant code from template-pipeline.yml which can be viewed by going to the Pipeline stack in CloudFormation and choosing the Template view.
 
 Resources:
 
@@ -133,7 +127,7 @@ Resources:
       Variables:
         NODE_ENV: "production"
         DEPLOY_ENVIRONMENT: !Ref DeployEnvironment
-        LOG_LEVEL: !If [ IsProduction, "INFO", "DEBUG"] # 0-2 (ERROR, WARN, INFO) for prod, 3-5 (MSG, DIAG, DEBUG) for non-prod
+        LOG_LEVEL: !If [ IsProduction, "INFO", "DEBUG"] # (ERROR, WARN, INFO) for prod, (MSG, DIAG, DEBUG) for non-prod
         PARAM_STORE_PATH: !Ref ParameterStoreHierarchy 
 		CACHE_DATA_TIME_ZONE_FOR_INTERVAL: !Ref CacheDataTimeZoneForInterval 
         CACHE_DATA_AWS_X_RAY_ON: true
@@ -167,7 +161,7 @@ Here are the AWS CLI commands to list environment variables and parameters for v
 ### CodeBuild Project Environment Variables
 
 ```bash
-aws codebuild batch-get-projects --names CODEBUILD_PROJECT_NAME | jq '.projects[0].environment.environmentVariables' --profile YOUR_PROFILE
+aws codebuild batch-get-projects --names CODEBUILD_PROJECT_NAME | jq '.projects[0].environment.environmentVariables' --profile default
 ```
 
 Replace `CODEBUILD_PROJECT_NAME` with the CodeBuild resource name. (You can get this from the Resources section of your Pipeline stack)
@@ -177,7 +171,7 @@ You can also view these values through the AWS Web console by going to CodePipel
 ### CloudFormation Stack Parameters
 
 ```bash
-aws cloudformation describe-stacks --stack-name STACK_NAME | jq '.Stacks[0].Parameters' --profile YOUR_PROFILE
+aws cloudformation describe-stacks --stack-name STACK_NAME | jq '.Stacks[0].Parameters' --profile default
 ```
 
 You can also view these values through the AWS Web console by going to CloudFormation, selecting a stack, and opening the Parameters tab.
@@ -185,7 +179,7 @@ You can also view these values through the AWS Web console by going to CloudForm
 ### Lambda Function Environment Variables
 
 ```bash
-aws lambda get-function-configuration --function-name FUNCTION_NAME | jq '.Environment.Variables' --profile YOUR_PROFILE
+aws lambda get-function-configuration --function-name FUNCTION_NAME | jq '.Environment.Variables' --profile default
 ```
 
 You can also view these values through the AWS Web console by going to Lambda, selecting the Lambda function, and opening the Configuration tab, and clicking on Environment Variables from the left-hand side.
@@ -474,7 +468,7 @@ For example, in the `buildspec.yml` file you are using in this tutorial, the fol
 7. Run the Python script `./build-scripts/generate-put-ssm.py` to generate a key to be used for encrypting cached-data in DynamoDb and S3.
 8. Run the Python script `./build-scripts/update_template_timestamp.py` to manipulate the `template.yml` file, placing a current timestamp in the Lambda function version description. (This helps overcome a (bug?) issue when deploying some Lambda functions)
 9. Perform the AWS CLI command `aws cloudformation package` command which creates the artifacts for the deployment.
-10. Perform a search and replace in `template-configuration.json` using the Linux `sed` command. This replaces the placeholders (`$VAR_NAME$`) in the `template-configuration.json` file with real values. You can add additional placeholders in the file and replace them with existing or new variables you provide in the buildspec file and `sed` command.
+10. Perform a search and replace in `template-configuration.json` to replace placeholders (`$VAR_NAME$`) in the `template-configuration.json` file with real values from the Environment.
 11. Sets the artifacts directory
 12. Sets the cache directory
 
@@ -486,7 +480,7 @@ To prevent these secrets from being exposed in environment variables or template
 
 When you created the pipeline, you supplied a parameter for the SSM Parameter Store Hierarchy. This path-style organization that helps in maintaining all the secrets that are stored across your applications.
 
-For example, in your organization you may store all SAM based web service applications under the `/sam-web-service/` path. The pipeline builds out the base path it was given and adds the Deploy Environment and ProjectId and StageId to the path specific to the application. This also ensures that only your application has access to its own secrets.
+For example, in your organization you may store all SAM based web service applications under the `/sam-webservice/` path. The pipeline builds out the base path it was given and adds the Deploy Environment and ProjectId and StageId to the path specific to the application. This also ensures that only your application has access to its own secrets.
 
 Instead of adding parameter store entries to the template, we utilize a script during the build to check for the existence of the SSM Parameter, and create it if it does not exist. This script not only checks and creates the parameter, but also adds all the relevant tags (by reading the `template-configuration.json` file) to maintain your organization's tagging policy.
 
@@ -511,13 +505,14 @@ It is important to note:
 1. The pipeline sets the default value of `NODE_ENV` to `production` in CodeBuild.
 2. We do a full dev install of Python and Node for running scripts specifically during the build.
 3. We remove, and therefore do not deploy, dev packages before packaging dependencies with the Lambda function.
-4. Though the Lambda environment variable `NODE_ENV` is set to `development` during `TEST` deployments, it does not have any `DevDependencies`
-and is set to `production` during `PROD`environment deployments.
+4. The Lambda environment variable `NODE_ENV` is ALWAYS set to `production` for security.
 5. We also run tests and an audit to ensure the function passes all tests and its packages have no critical vulnerabilities.
 
 This multi-step approach, along with audits and tests, ensures that the code we are deploying is properly vetted and has a reduced attack surface.
 
-Also, by only deploying the necessary packages with the Lambda function, we reduce the Lambda size which improves Cold Starts and allows you to examine code in the Lambda console. DevDependencies are developer tools only necessary for local development environments and running tests. They do not belong in production as they bring extra bloat and attack surfaces.
+Also, by only deploying the necessary packages with the Lambda function, we reduce the Lambda size which improves Cold Starts and allows you to examine code in the Lambda console. 
+
+> `DevDependencies` are developer tools only necessary for local development environments and running tests. They do not belong in production as they bring extra bloat and attack surfaces.
 
 #### Build Scripts
 
@@ -559,6 +554,7 @@ In general, there are three ways to use the script:
 Generate a 256 bit key and store it in the parameter CacheData_SecureDataKey in your application's hierarchy:
 
 ```bash
+export PARAM_STORE_HIERARCHY=/YOUR-PATH/
 python3 ./build-scripts/generate-put-ssm.py ${PARAM_STORE_HIERARCHY}CacheData_SecureDataKey --generate 256
 ```
 

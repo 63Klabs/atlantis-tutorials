@@ -48,7 +48,7 @@ git pull
 Now we will create a repository and seed it with starter code using the `create_repo.py` command. (Be sure to replace `USER` so you can keep track of which one is yours in shared environments. Replace `default` profile with a different login profile if assigned.)
 
 ```bash
-./cli/create_repo.py USER-advanced-8-ball --profile default
+./cli/create_repo.py USER-tutorial-advanced-8-ball --profile default
 ```
 
 Choose `00-basic-apigw-lambda-nodejs.zip` from the prompt.
@@ -154,7 +154,7 @@ In the CLI, type `git clone` and paste the URL you copied.
 
 ```bash
 git clone https://THE_GIT_URL_YOU_COPIED
-cd advanced-8-ball
+cd USER-tutorial-advanced-8-ball
 ```
 
 > Tip: If using VS Code or Kiro, once you `cd` into your repository's directory, you can use the `code .` or `kiro .` to open that workspace in a new window!
